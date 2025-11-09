@@ -218,7 +218,7 @@ class _invoiceRepository implements invoiceInterface
 
     public function deleteInvoice($invoicenumber)
     {
-        $invoice = $this->invoice->where('invoice_number', $invoicenumber)->first();
+        $invoice = $this->invoice->where('invoicenumber', $invoicenumber)->first();
         if (! $invoice) {
             return ['status' => 'ERROR', 'message' => 'Invoice not found', 'data' => null];
         }

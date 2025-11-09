@@ -6,6 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Onlinepayment extends Model
 {
+    protected $fillable = [
+        'uuid',
+        'invoicenumber',
+        'amount',
+        'currency_id',
+        'status',
+    ];
     public function currency()
     {
         return $this->belongsTo(Currency::class);

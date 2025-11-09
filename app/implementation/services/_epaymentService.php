@@ -6,6 +6,7 @@ use App\Interfaces\repositories\ibankaccountInterface;
 use App\Interfaces\repositories\ibankInterface;
 use App\Interfaces\repositories\ipayeeInterface;
 use App\Interfaces\services\iepaymentService;
+use App\Interfaces\services\ionlinepaymentService;
 
 class _epaymentService implements iepaymentService
 {
@@ -18,11 +19,14 @@ class _epaymentService implements iepaymentService
 
     protected $payeeRepository;
 
-    public function __construct(ibankInterface $bankrepo, ibankaccountInterface $bankaccountrepo, ipayeeInterface $payeeRepository)
+    protected $onlinepaymentrepo;
+
+    public function __construct(ibankInterface $bankrepo, ibankaccountInterface $bankaccountrepo, ipayeeInterface $payeeRepository, ionlinepaymentService $onlinepaymentrepo)
     {
         $this->bankrepo = $bankrepo;
         $this->bankaccountrepo = $bankaccountrepo;
         $this->payeeRepository = $payeeRepository;
+        $this->onlinepaymentrepo = $onlinepaymentrepo;
     }
 
     public function checkinvoice($data)
@@ -38,7 +42,7 @@ class _epaymentService implements iepaymentService
             ];
         }
 
-        /*   $onlinepayment = $this->onlinepaymentrepo->getpaymentbyuuid($data['invoicenumber']);
+    /*   $onlinepayment = $this->onlinepaymentrepo->getpaymentbyuuid($data['invoicenumber']);
         if (!$onlinepayment) {
             return [
                 'message' => 'Online payment transaction not found',
@@ -88,11 +92,11 @@ class _epaymentService implements iepaymentService
             'amount' => $amount,
             'source' => 'egp',
             'status' => 'PENDING',
-        ]);*/
-        $epaymentresponse = $this->payeeRepository->getbyuuid($data['invoicenumber']);
-        if (strtoupper($epaymentresponse['status']) == 'SUCCESS') {
+        ]);
+    */
+        $epaymentresponse = $this->onlinepaymentrepo->getepayment($data['invoicenumber']);/*invoicenumber is equal to the CAT uuid for epayments*/
+        if (strtoupper($epaymentresponse->status) == 'SUCCESS') {
             $epayment = $epaymentresponse['data'];
-
             $bankaccount = $this->bankaccountrepo->retrievebankaccount($bank->id, $epayment->onlinepayment->invoice->inventoryitem->type, $epayment->onlinepayment->invoice->currency_id);
             if (! $bankaccount) {
                 return [
@@ -149,7 +153,6 @@ class _epaymentService implements iepaymentService
                 'result' => ['redirecturl' => $epayment->onlinepayment->return_url],
             ];
         }
-
         $invoice = $epayment->onlinepayment->invoice;
         if ($invoice == null) {
             return [
@@ -178,7 +181,7 @@ class _epaymentService implements iepaymentService
                 'result' => null,
             ];
         }
-        if ($epayment->amount != $data['Amount']) {
+        if ($epayment->onlinepayment->amount != $data['Amount']) {
             return [
                 'message' => 'Amount provided is different from invoiced amount',
                 'status' => 'ERROR',
@@ -186,9 +189,9 @@ class _epaymentService implements iepaymentService
                 'errors' => null,
                 'result' => null,
             ];
-        }
-        $response = $this->payeeRepository->update($epayment->uuid, ['Status' => 'PAID']);
-        if ($response['status'] == 'SUCCESS') {
+        } 
+        $response = $this->payeeRepository->update(['status' => 'PAID'], $epayment->uuid);
+        if ($response['status'] == 'success') {
             return [
                 'message' => 'Transaction successfully settled',
                 'status' => 'SUCCESS',

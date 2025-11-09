@@ -24,10 +24,10 @@ class BanktransactionRequest extends FormRequest
         return [
             'authcode'=>['required'],
             'description'=>['required'],
-            'trans_date'=>['required'],
+            'transactiondate'=>['required'],
             'referencenumber'=>['required'],
-            'source_reference'=>['required'],
-            'statement_reference'=>['required'],
+            'sourcereference'=>['required'],
+            'statementreference'=>['required'],
             'amount'=>['required'],
             'accountnumber'=>['required'],
             'currency'=>['required']

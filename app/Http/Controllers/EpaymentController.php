@@ -22,10 +22,10 @@ class EpaymentController extends Controller
         $removedtoken = str_replace('"', ' ', $token);
         $newtoken = str_replace('Bearer ', ' ', $removedtoken);
         $final = Str::trim($newtoken);
-
+        
         return $this->service->checkinvoice(['token' => $final, 'invoicenumber' => $invoicenumber]);
     }
-
+ 
     public function posttransaction(EpaymentRequest $request)
     {
         return $this->service->posttransaction(['initiationId' => $request['initiationId'],
@@ -36,3 +36,4 @@ class EpaymentController extends Controller
             'status' => $request['status']]);
     }
 }
+ 

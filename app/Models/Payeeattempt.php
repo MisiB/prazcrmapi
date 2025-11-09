@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Payeeattempt extends Model
 {
+    protected $fillable = [
+        'payeedetail_id',
+        'onlinepayment_id',
+        'status',
+        'attempted_at'
+    ];
     public function payeedetail()
     {
         return $this->belongsTo(Payeedetail::class, 'payeedetail_id');

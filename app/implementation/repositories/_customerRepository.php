@@ -45,8 +45,15 @@ class _customerRepository implements icustomerInterface
           if($check){
              return ['status'=>'error','message'=>'Customer already exists'];
             }
-            $this->model->create($data);
-            return ['status'=>'success','message'=>'Customer created successfully'];
+            $customer=$this->model->create($data);
+            return [
+                    'status'=>'success',
+                    'message'=>'Customer created successfully',
+                    'data'=>[
+                        'regnumber'=> $customer->regnumber, 
+                        'name'=>$customer->name
+                    ]
+                ];
         }catch(\Exception $e){
             return ['status'=>'error','message'=>$e->getMessage()];
         }
@@ -54,8 +61,15 @@ class _customerRepository implements icustomerInterface
     public function update(array $data, $id)
     {
         try{
-            $this->model->find($id)->update($data);
-            return ['status'=>'success','message'=>'Customer updated successfully'];
+            $customerexists=$this->model->find($id);
+            if(empty($customerexists)){
+                return ['status'=>'error','message'=>'Customer not found'];
+            }
+            $customerexists->update($data);
+            return [
+                    'status'=>'success',
+                    'message'=>'Customer updated successfully'
+                ];
         }catch(\Exception $e){
             return ['status'=>'error','message'=>$e->getMessage()];
         }

@@ -23,7 +23,7 @@ class ClaimBanktransactionRequest extends FormRequest
     {
         return [
             'regnumber' => 'required|string',
-            'SourceReference' => 'required|string',
+            'sourcereference' => 'required|string',
             'token' => 'required|string',
         ];
     }

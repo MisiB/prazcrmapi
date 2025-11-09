@@ -48,18 +48,22 @@ class _payeeRepository implements ipayeeInterface
     public function getbyuuid($uuid)
     {
         $record = $this->payeeattempt->with('payeedetail', 'onlinepayment.currency', 'onlinepayment.invoice.customer', 'onlinepayment.invoice.inventoryitem')->where('uuid', $uuid)->first();
-        if ($record) {
+        if (!empty($record)) {
+            return $record;
+            /*
             return [
                 'status' => 'success',
                 'message' => 'Payee attempt details retrieved successfully',
                 'data' => $record,
-            ];
+            ];*/
         } else {
+            return null;
+            /*
             return [
                 'status' => 'error',
                 'message' => 'Payee attempt details not found',
                 'data' => null,
-            ];
+            ];*/
         }
     }
 
@@ -132,7 +136,7 @@ class _payeeRepository implements ipayeeInterface
         try {
             $record = $this->payeeattempt->with('onlinepayment.invoice.inventoryitem')->where('uuid', $uuid)->first();
             if ($record) {
-                if ($details['status'] == 'APPROVED') {
+                if ($record['status'] == 'APPROVED') {
                     $bankid = 1;
                     if (isset($details['bank_id'])) {
                         $bankid = $details['bank_id'];

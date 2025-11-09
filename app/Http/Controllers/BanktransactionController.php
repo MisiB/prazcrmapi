@@ -22,10 +22,10 @@ class BanktransactionController extends Controller
         $response = $this->repo->createtransaction([
             'authcode'=>$request['authcode'],
             'description'=>$request['description'],
-            'trans_date'=>$request['trans_date'],
+            'transactiondate'=>$request['transactiondate'],
             'referencenumber'=>$request['referencenumber'],
-            'source_reference'=>$request['source_reference'],
-            'statement_reference'=>$request['statement_reference'],
+            'sourcereference'=>$request['sourcereference'],
+            'statementreference'=>$request['statementreference'],
             'amount'=>$request['amount'],
             'accountnumber'=>$request['accountnumber'],
             'currency'=>$request['currency']
@@ -46,7 +46,7 @@ class BanktransactionController extends Controller
      public function claim(ClaimBanktransactionRequest $request){
         $response = $this->repo->claim([
             'regnumber'=>$request['regnumber'],
-            'SourceReference'=>$request['SourceReference'],
+            'sourcereference'=>$request['sourcereference'],
             'token'=>$request['token']
            ]);
            return $response;

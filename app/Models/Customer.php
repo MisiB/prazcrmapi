@@ -7,7 +7,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Customer extends Model
 {
-    
+    protected $fillable = [
+        'regnumber',
+        'name',
+        'type',
+        'country',
+    ];   
     public function onlinepayments():HasMany{
         return $this->hasMany(Onlinepayment::class);
     }

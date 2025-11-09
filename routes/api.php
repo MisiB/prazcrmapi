@@ -15,7 +15,7 @@ use App\Http\Controllers\PublicWorkshopController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\WorkshopController;
 use Illuminate\Support\Facades\Route;
-
+ 
 Route::post('sendPayment', [BanktransactionController::class, 'create'])->name('sendPayment');
 Route::get('CheckInvoicenumber/{invoicenumber}', [EpaymentController::class, 'checkinvoice']);
 Route::post('PostTransaction', [EpaymentController::class, 'posttransaction']);
@@ -34,7 +34,7 @@ Route::get('Invoice/{invoicenumber}', [invoiceController::class, 'show']);
 Route::post('Invoice/Create', [invoiceController::class, 'store']);
 Route::get('ExchangeRate/GetLatest/{currency_id?}', [ExchangerateController::class, 'getlatest']);
 Route::delete('Invoice/{invoicenumber}', [invoiceController::class, 'destroy']);
-Route::post('Wallet', [WalletController::class, 'getwalletbalance']);
+Route::get('Wallet', [WalletController::class, 'getwalletbalance']);
 Route::get('Wallet/{regnumber}', [WalletController::class, 'getwallet']);
 Route::post('PayNow/Initiate', [OnlinepaymentController::class, 'initiatePayment']);
 Route::get('PayNow/{uuid}', [OnlinepaymentController::class, 'checkPayment']);

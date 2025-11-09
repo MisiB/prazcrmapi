@@ -147,6 +147,8 @@ use App\implementation\repositories\_targetmatrixRepository;
 use App\implementation\repositories\_individualworkplanRepository;
 use App\implementation\repositories\_knowledgeBaseRepository;
 use App\Interfaces\repositories\iknowledgeBaseInterface;
+use App\Interfaces\services\ibanktransactionInterface as ibanktransactionServicesInterface;
+use App\Interfaces\services\icustomerInterface as icustomerServicesInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -177,8 +179,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(IImportService::class, _importService::class);
         $this->app->bind(ipalladiumInterface::class, _palladiumService::class);
         $this->app->bind(ICalendarService::class, _calendarService::class);
-        $this->app->bind(ibanktransactionInterface::class, _banktransactionService::class);
-        $this->app->bind(icustomerInterface::class, _customerService::class);
+        $this->app->bind(ibanktransactionServicesInterface::class, _banktransactionService::class);
+        $this->app->bind(icustomerServicesInterface::class, _customerService::class);
         $this->app->bind(iinventoryitemService::class, _inventoryitemService::class);
         $this->app->bind(iinvoiceService::class, _invoiceService::class);
         $this->app->bind(iexchangerateService::class, _exchangerateService::class);
@@ -192,7 +194,7 @@ class AppServiceProvider extends ServiceProvider
         /**
          * 
          * Repository Provider Bindings
-         *  
+         * 
          * 
          * */ 
         $this->app->bind(iaccountsettingInterface::class, _accountsettingRepository::class);

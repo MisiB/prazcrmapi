@@ -13,6 +13,7 @@ class CustomerController extends Controller
     public function __construct(icustomerInterface $customerService)
     {
         $this->customerService = $customerService;
+        
     }
 
     public function index(){
@@ -22,7 +23,7 @@ class CustomerController extends Controller
     public function getbyregnumber($regnumber){
         return $this->customerService->getcustomerbyregnumber($regnumber);
     }
-
+ 
     public function createcustomer(CreateCustomerRequest $request){
          /// validate request
       $validated = $request->validated();
@@ -48,9 +49,9 @@ class CustomerController extends Controller
 
         $validated = $request->validated();
         return $this->customerService->updatecustomer([
-            'prnumber' => $validated['prnumber'],
-            'oldname' => $validated['oldname'],
-            'newname' => $validated['newname']
+            'regnumber' => $validated['prnumber'],
+            'name' => $validated['newname'],
+            'oldname' => $validated['oldname']
 
         ]);
     }

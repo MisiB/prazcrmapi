@@ -63,22 +63,13 @@ class _customerService implements servicecustomerInterface
                        "regnumber"=> $check_customer_regnumber->regnumber, 
                        "name"=>$check_customer_regnumber->name
                     ]
-                    ]; 
+                    ];  
             }else{
                 $response = $this->customerrepo->create($data);
                 if($response['status'] == "ERROR"){
                     return $response;
                 }else{
-                    $customer = $response['data'];
-
-                return [
-                    "status"=>"SUCCESS",
-                    "message"=>"Account created with registration number :".$customer->regnumber,
-                    "data"=>[
-                       "regnumber"=> $customer->regnumber, 
-                       "name"=>$customer->name
-                    ]
-                    ];
+                    return $response;
                 }
             }
         }
@@ -142,7 +133,7 @@ class _customerService implements servicecustomerInterface
                     "message"=>"PR Number and old company name does not match"
                     ];
             }else{
-                $check_customer_name = $this->customerrepo->searchname($data['name'],$data['type']);
+                $check_customer_name = $this->customerrepo->searchname($data['name'],$check_customer_regnumber->type);
                 if($check_customer_name != null){
                     return [
                         "status"=>"ERROR",

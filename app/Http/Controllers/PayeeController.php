@@ -36,7 +36,7 @@ class PayeeController extends Controller
     public function create(PayeeRequest $request)
     {
         return $this->service->create($request->validated());
-    }
+    } 
 
     public function update($uuid, UpdatePayeeRequest $request)
     {

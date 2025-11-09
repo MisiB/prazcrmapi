@@ -6,6 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class Banktransaction extends Model
 {
+   protected $fillable = [
+      'bank_id',
+      'referencenumber',
+      'sourcereference',
+      'statementreference',
+      'description',
+      'accountnumber',
+      'amount',
+      'currency',
+      'regnumber',
+      'transactiondate',
+      'customer_id',
+      'status',
+      'copied'
+   ];
+ 
  public function customer()
  {
     return $this->belongsTo(Customer::class,"customer_id");

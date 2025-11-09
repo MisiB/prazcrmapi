@@ -67,14 +67,14 @@ class _banktransactionRepository implements ibanktransactionInterface
         $transaction = $this->model->create([
             'bank_id' => $bank->id,
             'referencenumber' => $data['referencenumber'],
-            'sourcereference' => $data['source_reference'],
-            'statementreference' => $data['statement_reference'],
+            'sourcereference' => $data['sourcereference'],
+            'statementreference' => $data['statementreference'],
             'description' => $data['description'],
             'accountnumber' => $data['accountnumber'],
             'amount' => $data['amount'],
             'currency' => $data['currency'],
             'regnumber' => $customer_number,
-            'transactiondate' => $data['trans_date'],
+            'transactiondate' => $data['transactiondate'],
             'customer_id' => $customer_id,
             'status' => $status,
             'copied' => 0,
@@ -171,8 +171,9 @@ class _banktransactionRepository implements ibanktransactionInterface
 
     public function claim(array $data)
     {
-        $transaction = $this->model->where('sourcereference', '=', $data['sourcereference'])->first();
-        if ($transaction == null) {
+        $transaction = $this->model->where('sourcereference', $data['sourcereference'])->first();
+        //dd($transaction);
+        if (empty($transaction)) {
             return ['message' => 'Bank transaction not found', 'status' => 'ERROR'];
         }
         if ($transaction->status == 'CLAIMED') {
@@ -182,9 +183,9 @@ class _banktransactionRepository implements ibanktransactionInterface
         $bankaccount = $this->bankaccountrepo->getBankAccountByBankIdAndAccountNumber($transaction->bank_id, $transaction->accountnumber);
         if ($bankaccount == null) {
             return ['message' => 'Bank account not found', 'status' => 'ERROR'];
-        }
+        } 
         $customer = $this->customerrepo->getCustomerByRegnumber($data['regnumber']);
-        if ($customer == null) {
+        if (empty($customer)) {
             return ['message' => 'Regnumber not found', 'status' => 'ERROR'];
         }
         $suspenresponse = $this->suspenserepo->create([
