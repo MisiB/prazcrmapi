@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Database\Eloquent\Model;
 use App\implementation\services\_banktransactionService;
 use App\implementation\services\_calendarService;
 use App\implementation\services\_customerService;
@@ -172,6 +173,7 @@ class AppServiceProvider extends ServiceProvider
          *  
          * 
          * */  
+        Model::unguard();
         $this->app->bind(ihttpInterface::class, _httpService::class);
         $this->app->bind(ipaynowInterface::class, _paynowService::class);
         $this->app->bind(IImportService::class, _importService::class);
