@@ -38,17 +38,24 @@ class _customerRepository implements icustomerInterface
     {
         return $this->model->where("regnumber","like","%".$needle."%")->orWhere("name","like","%".$needle."%")->get();
     }
+
+
     public function create(array $data)
     {
         try{
            $check = $this->model->where("regnumber",$data["regnumber"])->first();
           if($check){
-             return ['status'=>'error','message'=>'Customer already exists'];
+             return ['status'=>'ERROR','message'=>'Account already exists with registration number:'.$check->regnumber];
             }
-            $this->model->create($data);
-            return ['status'=>'success','message'=>'Customer created successfully'];
+            $customer = $this->model->create($data);
+            
+            return [
+                'status'=>'SUCCESS',
+                'message'=>'Account created successfully with registration number:'.$data["regnumber"],
+                'data'=>$customer
+            ];
         }catch(\Exception $e){
-            return ['status'=>'error','message'=>$e->getMessage()];
+            return ['status'=>'ERROR','message'=>$e->getMessage()];
         }
     }
     public function update(array $data, $id)

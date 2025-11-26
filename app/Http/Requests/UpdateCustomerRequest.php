@@ -24,7 +24,8 @@ class UpdateCustomerRequest extends FormRequest
         return [
             'prnumber' => 'required|string|max:255',
             'oldname' => 'required|string|max:255',
-            'newname' => 'required|string|max:255'
+            'newname' => 'required|string|max:255',
+            'business_type' => 'nullable|string|max:255',
         ];
     }
     public function failedValidation(\Illuminate\Contracts\Validation\Validator $validator){

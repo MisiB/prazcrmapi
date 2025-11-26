@@ -26,6 +26,7 @@ class CreateCustomerRequest extends FormRequest
             'regnumber' => 'required|string|max:255',
             'type' => 'required|string|max:255',
             'country' => 'nullable',
+            'business_type' => 'nullable|string|max:255',
         ];
     }
     public function failedValidation(\Illuminate\Contracts\Validation\Validator $validator){

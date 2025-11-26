@@ -171,7 +171,7 @@ class _banktransactionRepository implements ibanktransactionInterface
 
     public function claim(array $data)
     {
-        $transaction = $this->model->where('sourcereference', '=', $data['sourcereference'])->first();
+        $transaction = $this->model->where('SourceReference', '=', $data['SourceReference'])->first();
         if ($transaction == null) {
             return ['message' => 'Bank transaction not found', 'status' => 'ERROR'];
         }
@@ -202,7 +202,7 @@ class _banktransactionRepository implements ibanktransactionInterface
         $transaction->status = 'CLAIMED';
         $transaction->save();
 
-        return ['message' => 'Transaction claimed', 'status' => 'SUCCESS'];
+        return ['message' => 'Transaction successfully claimed and wallet successfully topped up', 'status' => 'SUCCESS'];
     }
 
     public function link(array $data)
