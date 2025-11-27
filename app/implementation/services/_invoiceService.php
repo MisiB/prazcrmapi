@@ -21,10 +21,12 @@ class _invoiceService implements iinvoiceService
     {
         $invoice = $this->repo->getInvoiceByInvoiceNumber($invoice_number);
         if (! $invoice) {
-            return ['status' => 'ERROR', 'message' => 'Invoice not found', 'data' => null];
-        } elseif ($invoice->status == 'PAID') {
-            return ['status' => 'ERROR', 'message' => 'Invoice already paid', 'data' => null];
-        } else {
+            return ['status' => 'ERROR', 'message' => 'Invoice number not found', 'data' => null];
+        } 
+        // elseif ($invoice->status == 'PAID') {
+        //     return ['status' => 'ERROR', 'message' => 'Invoice already paid', 'data' => null];
+        // } 
+        else {
             return [
                 'status' => 'SUCCESS',
                 'message' => 'success',

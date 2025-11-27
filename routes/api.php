@@ -32,7 +32,7 @@ Route::post('WalletBalanceUtilization', [invoiceController::class, 'settleinvoic
 
 Route::get('Invoice/{invoicenumber}', [invoiceController::class, 'show']);
 Route::post('Invoice/Create', [invoiceController::class, 'store']);
-Route::get('ExchangeRate/GetLatest/{currency_id?}', [ExchangerateController::class, 'getlatest']);
+Route::get('ExchangeRate/GetLatest', [ExchangerateController::class, 'getlatest']);
 Route::delete('Invoice/{invoicenumber}', [invoiceController::class, 'destroy']);
 Route::post('Wallet', [WalletController::class, 'getwalletbalance']);
 Route::get('Wallet/{regnumber}', [WalletController::class, 'getwallet']);

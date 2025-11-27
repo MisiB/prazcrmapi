@@ -170,9 +170,9 @@ class _invoiceRepository implements invoiceInterface
 
             $this->invoice->create($newarray);
 
-            return ['status' => 'SUCCESS', 'message' => 'Invoice successfully created', 'data' => $this->invoice->find($this->invoice->id)];
+            return ['status' => 'SUCCESS', 'message' => 'Invoice successfully created'];
         } catch (\Exception $e) {
-            return ['status' => 'ERROR', 'message' => $e->getMessage(), 'data' => null];
+            return ['status' => 'ERROR', 'message' => $e->getMessage()];
         }
     }
 
@@ -192,7 +192,7 @@ class _invoiceRepository implements invoiceInterface
 
     public function updateInvoice($data)
     {
-        $invoice = $this->invoice->with('currency')->where('invoice_number', $data['invoicenumber'])->first();
+        $invoice = $this->invoice->with('currency')->where('invoicenumber', $data['invoicenumber'])->first();
         if (! $invoice) {
             return ['status' => 'ERROR', 'message' => 'Invoice not found', 'data' => null];
         }
@@ -218,7 +218,7 @@ class _invoiceRepository implements invoiceInterface
 
     public function deleteInvoice($invoicenumber)
     {
-        $invoice = $this->invoice->where('invoice_number', $invoicenumber)->first();
+        $invoice = $this->invoice->where('invoicenumber', $invoicenumber)->first();
         if (! $invoice) {
             return ['status' => 'ERROR', 'message' => 'Invoice not found', 'data' => null];
         }
@@ -227,7 +227,7 @@ class _invoiceRepository implements invoiceInterface
         }
         $invoice->delete();
 
-        return ['status' => 'SUCCESS', 'message' => 'Invoice successfully deleted', 'data' => null];
+        return ['status' => 'SUCCESS', 'message' => 'Invoice successfully deleted'];
     }
 
     public function getInvoicebyCustomer($customerId)
