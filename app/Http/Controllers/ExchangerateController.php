@@ -13,7 +13,7 @@ class ExchangerateController extends Controller
         $this->service = $service;
     } 
     
-    public function getlatest($currency_id=null){
-        return $this->service->getlatestexchangerate($currency_id);
+    public function getlatest(){
+        return $this->service->getlatestexchangerate(null);
     }
 }

@@ -15,8 +15,15 @@ class _customerService implements servicecustomerInterface
     public function getall(){
         return $this->customerrepo->getall();
     }
+
     public function getcustomerbyregnumber($regnumber){
      $customer = $this->customerrepo->getcustomerbyregnumber($regnumber);
+     if ($customer == null) {
+        return [
+            'status' => 'ERROR',
+            'message' => 'Account not found'
+        ];
+    }
      $array = [  "id"=>$customer->id,
         "regnumber"=>$customer->regnumber,
         "name"=>$customer->name,
@@ -32,55 +39,46 @@ class _customerService implements servicecustomerInterface
         return $array;
     }
     public function createcustomer($data){
+        // Check by regnumber (most unique identifier)
+        $check_customer_regnumber = $this->customerrepo->getCustomerByRegnumber($data['regnumber']);
+        if($check_customer_regnumber != null){
+            return [
+                "status"=>"ERROR",
+                "message"=>"Account already exists with registration number :".$check_customer_regnumber->regnumber,
+                "data"=>[
+                   "regnumber"=> $check_customer_regnumber->regnumber, 
+                   "name"=>$check_customer_regnumber->name
+                ]
+            ]; 
+        }
+        
+        //Check by name
         $check_customer_name = $this->customerrepo->searchname($data['name'],$data['type']);
         if($check_customer_name != null){
-           if(strtoupper(str_replace(" ","",$check_customer_name->regnumber)) == strtoupper(str_replace(" ","",$data['regnumber']))){
-           return [
-                "status"=>"SUCCESS",
-                "message"=>"Account created with registration number :".$check_customer_name->regnumber,
-                "data"=>[
-                   "regnumber"=> $check_customer_name->Regnumber, 
-                   "name"=>$check_customer_name->Name
-                ]
-                ];
-           }else{
             return [
                 "status"=>"ERROR",
                 "message"=>"Account name found in previous database please use registration number  :".$check_customer_name->regnumber,
                 "data"=>[
-                   "regnumber"=> $check_customer_name->Regnumber, 
-                   "name"=>$check_customer_name->Name
+                   "regnumber"=> $check_customer_name->regnumber, 
+                   "name"=>$check_customer_name->name
                 ]
-                ];
-           }
+            ];
+        }
+        
+        //no conflicts, create the customer
+        $response = $this->customerrepo->create($data);
+        if($response['status'] == "ERROR"){
+            return $response;
         }else{
-            $check_customer_regnumber = $this->customerrepo->getCustomerByRegnumber($data['regnumber']);
-            if($check_customer_regnumber != null){
-                return [
-                    "status"=>"ERROR",
-                    "message"=>"Registration number found in previous database  using account name  :".$check_customer_regnumber->name,
-                    "data"=>[
-                       "regnumber"=> $check_customer_regnumber->regnumber, 
-                       "name"=>$check_customer_regnumber->name
-                    ]
-                    ]; 
-            }else{
-                $response = $this->customerrepo->create($data);
-                if($response['status'] == "ERROR"){
-                    return $response;
-                }else{
-                    $customer = $response['data'];
-
-                return [
-                    "status"=>"SUCCESS",
-                    "message"=>"Account created with registration number :".$customer->regnumber,
-                    "data"=>[
-                       "regnumber"=> $customer->regnumber, 
-                       "name"=>$customer->name
-                    ]
-                    ];
-                }
-            }
+            $customer = $response['data'];
+            return [
+                "status"=>"SUCCESS",
+                "message"=>"Account created with registration number :".$customer->regnumber,
+                "data"=>[
+                   "regnumber"=> $customer->regnumber, 
+                   "name"=>$customer->name
+                ]
+            ];
         }
     }
     public function verifycustomer($data){
@@ -127,7 +125,7 @@ class _customerService implements servicecustomerInterface
         }
     }
     public function updatecustomer($data){
-        $check_customer_regnumber = $this->customerrepo->getCustomerByRegnumber($data['regnumber']);
+        $check_customer_regnumber = $this->customerrepo->getCustomerByRegnumber($data['prnumber']);
         if($check_customer_regnumber == null){
             return [
                 "status"=>"ERROR",
@@ -142,14 +140,23 @@ class _customerService implements servicecustomerInterface
                     "message"=>"PR Number and old company name does not match"
                     ];
             }else{
-                $check_customer_name = $this->customerrepo->searchname($data['name'],$data['type']);
+                $check_customer_name = $this->customerrepo->searchname($data['newname'], $check_customer_regnumber->type);
                 if($check_customer_name != null){
                     return [
                         "status"=>"ERROR",
                         "message"=>"System has found Duplicate new name"
                         ];
                 }else{
-                    $this->customerrepo->update($data,$check_customer_regnumber->id);
+                    $updateData = [
+                        'name' => $data['newname'],
+                    ];
+                    
+                    // Update business_type if provided
+                    if(isset($data['business_type'])){
+                        $updateData['business_type'] = $data['business_type'];
+                    }
+                    
+                    $this->customerrepo->update($updateData, $check_customer_regnumber->id);
                     return [
                         "status"=>"SUCCESS",
                         "message"=>"Account updated successfully"

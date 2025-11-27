@@ -114,7 +114,19 @@ class _suspenseRepository implements isuspenseInterface
 
     public function getpendingsuspense($regnumber, $accounttype, $currency)
     {
-        return $this->model->with('suspenseutilizations')->where('status', 'PENDING')->where('sourcetype', '!=', 'bbf')->where('type', $accounttype)->where('currency', $currency)->get();
+        $customer = $this->customer->where('regnumber', $regnumber)->first();
+        
+        if (!$customer) {
+            return collect([]); // Return empty collection if customer not found
+        }
+        
+        return $this->model->with('suspenseutilizations')
+            ->where('customer_id', $customer->id) 
+            ->where('status', 'PENDING')
+            ->where('sourcetype', '!=', 'bbf')
+            ->where('type', $accounttype)
+            ->where('currency', $currency)
+            ->get();
     }
 
     public function createmonthlysuspensewallets($month, $year)
@@ -153,6 +165,15 @@ class _suspenseRepository implements isuspenseInterface
     public function getsuspensewallet($regnumber)
     {
         $customer = $this->customer->where('regnumber', $regnumber)->first();
+
+         // Check if customer exists
+         if (!$customer) {
+            return [
+                'status' => 'ERROR',
+                'message' => 'Account not found',
+                'data' => null
+            ];
+        }
         $wallettypes = ['NONREFUNDABLE', 'REFUNDABLE'];
         $currencylist = $this->currency->where('status', 'ACTIVE')->get();
         $suspnselist = $this->model->with('suspenseutilizations')->where('customer_id', $customer->id)->where('status', 'PENDING')->get();
@@ -169,23 +190,30 @@ class _suspenseRepository implements isuspenseInterface
                             $totalutilized += $suspense->suspenseutilizations->sum('amount');
                         }
                         $array[] = [
-                            'type' => $wallettype,
-                            'currency' => $currency->name,
                             'balance' => number_format($totalsuspense - $totalutilized, 2),
+                            'currency' => $currency->name,
                             'regnumber' => $customer->regnumber,
+                            'type' => $wallettype
+                            
                         ];
                     } else {
                         $array[] = [
-                            'type' => $wallettype,
-                            'currency' => $currency->name,
                             'balance' => 0,
+                            'currency' => $currency->name,
                             'regnumber' => $customer->regnumber,
+                            'type' => $wallettype,
+                            
                         ];
                     }
                 }
             }
 
-            return $array;
+            return [
+                'status' => 'SUCCESS',
+                'message' => 'SUCCESS',
+                'data' => $array
+            ];
+
         } else {
             foreach ($wallettypes as $wallettype) {
                 foreach ($currencylist as $currency) {
@@ -223,7 +251,16 @@ class _suspenseRepository implements isuspenseInterface
     public function getwalletbalance($regnumber, $accounttype, $currency)
     {
         $customer = $this->customer->where('regnumber', $regnumber)->first();
-        $suspenses = $this->model->with('suspenseutilizations')->where('customer_id', $customer->id)->where('status', 'PENDING')->where('type', $accounttype)->where('currency', $currency)->get();
+
+         // Check if customer exists
+         if (!$customer) {
+            return [
+                'status' => 'ERROR',
+                'message' => 'Account not found',
+                'data' => null
+            ];
+        }
+        $suspenses = $this->model->with('suspenseutilizations')->where('customer_id', $customer->id)->where('status', 'PENDING') ->where('sourcetype', '!=', 'bbf')->where('type', $accounttype)->where('currency', $currency)->get();
         $totalsuspense = 0;
         $totalutilized = 0;
         if (count($suspenses) > 0) {
@@ -232,8 +269,16 @@ class _suspenseRepository implements isuspenseInterface
                 $totalutilized += $suspense->suspenseutilizations->sum('amount');
             }
         }
+        $balance = number_format($totalsuspense - $totalutilized, 2);
 
-        return number_format($totalsuspense - $totalutilized, 2);
+        return 
+            [
+                'balance' => $balance,
+                'currency' => $currency,
+                'regnumber' => $customer->regnumber,
+                'type' => $accounttype
+                
+            ];
     }
 
     public function deductwallet($regnumber, $invoice_id, $accounttype, $currency, $amount, $receiptnumber)

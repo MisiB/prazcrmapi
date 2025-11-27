@@ -55,6 +55,19 @@ class _onlinepaymentRepository implements ionlinepaymentInterface
     public function initiatepayment($data)
     {
         try {
+            // Check if UUID already exists
+            $check = $this->onlinepayment->where('uuid', $data['uuid'])->first();
+            if ($check) {
+                return ['status' => 'ERROR', 'message' => 'Transaction unique ID already utilized'];
+            }
+
+             // Validate currency exists
+             $currency = $this->currency->where('name', $data['currency'])->first();
+             if (!$currency) {
+                 return ['status' => 'ERROR', 'message' => 'Currency not found'];
+             }
+
+            // Get invoice
             $invoice = $this->invoicerepo->getInvoiceByInvoiceNumber($data['invoicenumber']);
             if ($invoice == null) {
                 return ['status' => 'ERROR', 'message' => 'Invoice not found'];
@@ -68,7 +81,15 @@ class _onlinepaymentRepository implements ionlinepaymentInterface
             if (strtoupper($invoice->customer->regnumber) != $data['regnumber']) {
                 return ['status' => 'ERROR', 'message' => 'Customer account not found'];
             }
-
+            // Check if invoice has currency
+            if ($invoice->currency == null) {
+                return ['status' => 'ERROR', 'message' => 'Currency not found'];
+            }
+            // Check if invoice currency matches request currency
+            if (strtoupper($invoice->currency->name) != strtoupper($data['currency'])) {
+                return ['status' => 'ERROR', 'message' => 'Currency Invoice different from selected currency'];
+            }
+            // Calculate total due 
             $totaldue = $invoice->amount - $invoice->receipts->sum('amount');
             if ($totaldue <= 0) {
                 $invoice->status = 'PAID';
@@ -76,13 +97,15 @@ class _onlinepaymentRepository implements ionlinepaymentInterface
 
                 return ['status' => 'SUCCESS', 'message' => 'Invoice settled successfully'];
             }
+            // Check wallet balance
             $walletbalance = $this->suspenserepo->getwalletbalance($invoice->customer->regnumber, $invoice->inventoryitem->type, $invoice->currency->name);
             if ($totaldue <= $walletbalance) {
                 return ['status' => 'ERROR', 'message' => 'User has sufficient balance in wallet to settle invoice', 'data' => null];
             }
-
+            // Calculate amount due after wallet balance
             $amountdue = round($totaldue - $walletbalance, 2);
             $paymentlink = config('paynowconfig.paymenturl').'/'.$data['uuid'];
+            // Create online payment record
             $this->onlinepayment->create([
                 'customer_id' => $invoice->customer->id,
                 'uuid' => $data['uuid'],
@@ -95,7 +118,7 @@ class _onlinepaymentRepository implements ionlinepaymentInterface
                 'status' => 'PENDING',
             ]);
 
-            return ['status' => 'SUCCESS', 'message' => 'Payment link generated successfully', 'data' => ['link' => $paymentlink]];
+            return ['status' => 'SUCCESS', 'message' => 'success', 'data' => ['link' => $paymentlink]];
         } catch (\Exception $e) {
             return ['status' => 'ERROR', 'message' => $e->getMessage()];
         }
@@ -103,15 +126,19 @@ class _onlinepaymentRepository implements ionlinepaymentInterface
 
     public function checkpaymentstatus($uuid)
     {
+        // Load payment with currency relationship
         $payment = $this->onlinepayment->where('uuid', $uuid)->first();
         if ($payment == null) {
             return ['status' => 'ERROR', 'message' => 'Transaction not found'];
         }
-        if ($payment->status == 'PAID') {
-            return ['status' => 'ERROR', 'message' => 'Transaction already verified'];
-        }
+        // Check if already verified
+        // if (strtoupper($payment->status) == 'PAID') {
+        //     return ['status' => 'ERROR', 'message' => 'Transaction already verified'];
+        // }
+
         $status = strtoupper($payment->status);
-        if ($status == 'PENDING' || $status == 'CREATED') {
+        // Check if payment is completed (PAID or CREATED)
+        if ($status == 'PAID') {
             return [
                 'status' => 'SUCCESS',
                 'message' => 'Payment successfully completed',
@@ -123,8 +150,8 @@ class _onlinepaymentRepository implements ionlinepaymentInterface
                 ],
             ];
         }
-
-        return ['status' => 'ERROR', 'message' => 'Payment found with status: '.ucfirst($status), 'data' => [
+ // Payment is still pending or failed
+        return ['status' => 'ERROR', 'message' => 'Payment failed or pending with status: '.ucfirst($status), 'data' => [
             'id' => $payment->id,
             'amount' => $payment->amount,
             'currency' => $payment->currency->name,

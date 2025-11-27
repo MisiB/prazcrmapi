@@ -32,6 +32,7 @@ class CustomerController extends Controller
             'regnumber' => $validated['regnumber'],
             'type' => $validated['type'],
             'country' => $validated['country'],
+            'business_type' => $validated['business_type'] ?? null,
         ]);
     }
 
@@ -50,8 +51,8 @@ class CustomerController extends Controller
         return $this->customerService->updatecustomer([
             'prnumber' => $validated['prnumber'],
             'oldname' => $validated['oldname'],
-            'newname' => $validated['newname']
-
+            'newname' => $validated['newname'],
+            'business_type' => $validated['business_type'] ?? null,
         ]);
     }
 }

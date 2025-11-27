@@ -61,54 +61,115 @@ class _suspenseService implements isuspenseService
         if(!$invoice){
             return ['status'=>'ERROR','message'=>'Invoice not found'];
         }
-        //get wallet balance
-        $walletbalance = $this->repository->getwalletbalance($customer->regnumber,$data['accounttype'],$invoice->currency->name);
-        if((double)$invoice->amount>(double)$walletbalance){
+        
+        // Check invoice status
+        if(strtoupper($invoice->status) == 'PAID'){
+            return ['status'=>'ERROR','message'=>'Invoice already settled'];
+        }
+        
+        //get wallet balance - extract numeric value from array
+        $walletbalanceResult = $this->repository->getwalletbalance($customer->regnumber,$data['accounttype'],$invoice->currency->name);
+
+        // Check if there was an error from getwalletbalance
+        if(isset($walletbalanceResult['status']) && $walletbalanceResult['status'] === 'ERROR'){
+            return $walletbalanceResult;
+        }
+
+        // Extract balance and remove formatting (commas) for numeric comparison
+        $walletbalance = (float) str_replace(',', '', $walletbalanceResult['balance']);
+
+        // FIX: Remove commas from invoice amount before comparison
+        $invoiceAmount = (float) str_replace(',', '', $invoice->amount);
+
+        if($invoiceAmount > $walletbalance){
             return ['status'=>'ERROR','message'=>"Insufficient funds in wallet of type ".$data['accounttype']." using currency ".$invoice->currency->name];
         }
-        //get pendingsuspense
+        
+        //get pendingsuspense - we NEED these records to exist!
         $pendingsuspense = $this->repository->getpendingsuspense($customer->regnumber,$data['accounttype'],$invoice->currency->name);
-        if(count($pendingsuspense)>0){
+        if(count($pendingsuspense) == 0){  // FIX: Changed from >0 to ==0
             return ['status'=>'ERROR','message'=>"Insufficient funds in wallet of type ".$data['accounttype']." using currency ".$invoice->currency->name];
         }
-        /// check  invoice balance
-        $invoicebalance = $invoice->amount-$invoice->receipts->sum('amount');
-        if((double)$invoicebalance<=0){
+        
+        /// check invoice balance
+        $invoiceAmount = (float) str_replace(',', '', $invoice->amount);
+        $invoicebalance = $invoiceAmount - (float)$invoice->receipts->sum('amount');
+        if($invoicebalance <= 0){
             $response = $this->invoicerepo->markInvoiceAsPaid($invoice->invoicenumber);
             if($response['status']=='ERROR'){
                 return $response;
             }
             return ['status' => 'SUCCESS', 'message' => 'Invoice successfully settled'];
         }
+        
         //create suspenseutilization
+        $balanceDue = $invoicebalance; // Initialize balanceDue
         foreach($pendingsuspense as $suspense){
-
-      $availableBalance = round(round($suspense->amount,2)- round($suspense->suspenseutilizations->sum('amount'), 2),2);
-         if((double)$availableBalance<=0){
-            $suspense->status = "UTILIZED";
-            $suspense->save();
-         }else{
-            $amountToUtilize = min($invoicebalance, $availableBalance);
-            $balanceDue = $balanceDue - $amountToUtilize; // Deduct the utilized amount from balance due
-            $response = $this->repository->createSuspenseutilization($suspense->id,$invoice->id,$amountToUtilize,$data['receiptnumber']);
+            // Break early if balance is fully satisfied
+            if($balanceDue <= 0){
+                break;
+            }
+            
+            $availableBalance = round(round($suspense->amount,2) - round($suspense->suspenseutilizations->sum('amount'), 2), 2);
+            
+            if($availableBalance <= 0){
+                $suspense->status = "UTILIZED";
+                $suspense->save();
+                continue; // Skip to next suspense record
+            }
+            
+            // Determine how much to utilize from this suspense
+            $amountToUtilize = min($balanceDue, $availableBalance);
+            
+            // Create suspense utilization
+            $response = $this->repository->createSuspenseutilization($suspense->id, $invoice->id, $amountToUtilize, $data['receiptnumber']);
             if($response['status']=='ERROR'){
                 return $response;
             }
-            $invoice = $this->invoicerepo->getInvoiceDetails($invoice->id);
-            $invoicebalance = $invoice->amount-$invoice->receipts->sum('amount');
-            if($invoicebalance<=0){
-                $response = $this->invoicerepo->markInvoiceAsPaid($invoice->invoicenumber);
-                if($response['status']=='SUCCESS'){                    
-                return ['status'=>'SUCCESS','message'=>'Invoice successfully settled'];
-                }
+            
+            // Update balance due
+            $balanceDue = $balanceDue - $amountToUtilize;
+            
+            // Update suspense status if fully utilized
+            if(round($availableBalance - $amountToUtilize, 2) <= 0){
+                $suspense->status = "UTILIZED";
+                $suspense->save();
             }
-         }
+            
+            // Check if invoice is fully settled (only check when balance due is satisfied)
+            if($balanceDue <= 0){
+                // Refresh invoice to get updated receipts
+                $invoice = $this->invoicerepo->getInvoiceDetails($invoice->id);
+                $invoiceAmount = (float) str_replace(',', '', $invoice->amount);
+                $invoicebalance = $invoiceAmount - (float)$invoice->receipts->sum('amount');
+                
+                if($invoicebalance <= 0){
+                    $response = $this->invoicerepo->markInvoiceAsPaid($invoice->invoicenumber);
+                    if($response['status']=='SUCCESS'){                    
+                        return ['status'=>'SUCCESS','message'=>'Invoice successfully settled'];
+                    }
+                }
+                break; // Exit loop since balance is satisfied
+            }
         }
-       
-       
-       
-        
-       
 
+        // Final check if invoice is fully settled after processing all suspense records
+        $invoice = $this->invoicerepo->getInvoiceDetails($invoice->id);
+        $invoiceAmount = (float) str_replace(',', '', $invoice->amount);
+        $finalBalance = $invoiceAmount - (float)$invoice->receipts->sum('amount');
+
+        if($finalBalance <= 0){
+            $response = $this->invoicerepo->markInvoiceAsPaid($invoice->invoicenumber);
+            if($response['status']=='SUCCESS'){
+                return ['status'=>'SUCCESS','message'=>'Invoice successfully settled'];
+            }
+        }
+
+        // Check if there's still balance due after using all available suspense
+        if($balanceDue > 0){
+            return ['status'=>'ERROR','message'=>"Insufficient funds in wallet of type ".$data['accounttype']." using currency ".$invoice->currency->name." to fully settle invoice. Remaining balance: ".$balanceDue];
+        }
+
+        return ['status'=>'SUCCESS','message'=>'Wallet utilization processed'];
     }
 }
