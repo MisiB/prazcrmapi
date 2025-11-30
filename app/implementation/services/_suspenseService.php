@@ -68,7 +68,7 @@ class _suspenseService implements isuspenseService
         }
         
         //get wallet balance - extract numeric value from array
-        $walletbalanceResult = $this->repository->getwalletbalance($customer->regnumber,$data['accounttype'],$invoice->currency->name);
+        $walletbalanceResult = $this->repository->getwalletbalance($customer->regnumber,$invoice->inventoryitem->type,$invoice->currency->name);
 
         // Check if there was an error from getwalletbalance
         if(isset($walletbalanceResult['status']) && $walletbalanceResult['status'] === 'ERROR'){
