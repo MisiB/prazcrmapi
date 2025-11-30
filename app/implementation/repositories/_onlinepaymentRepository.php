@@ -61,11 +61,11 @@ class _onlinepaymentRepository implements ionlinepaymentInterface
                 return ['status' => 'ERROR', 'message' => 'Transaction unique ID already utilized'];
             }
 
-             // Validate currency exists
-             $currency = $this->currency->where('name', $data['currency'])->first();
-             if (!$currency) {
-                 return ['status' => 'ERROR', 'message' => 'Currency not found'];
-             }
+            // Validate currency exists
+            $currency = $this->currency->where('name', $data['currency'])->first();
+            if (!$currency) {
+                return ['status' => 'ERROR', 'message' => 'Currency not found'];
+            }
 
             // Get invoice
             $invoice = $this->invoicerepo->getInvoiceByInvoiceNumber($data['invoicenumber']);
@@ -99,13 +99,13 @@ class _onlinepaymentRepository implements ionlinepaymentInterface
             }
             // Check wallet balance
             $walletbalance = $this->suspenserepo->getwalletbalance($invoice->customer->regnumber, $invoice->inventoryitem->type, $invoice->currency->name);
-         
+
             if ($totaldue <= $walletbalance['balance']) {
-                return ['status' => 'ERROR', 'message' => 'User has sufficient balance in wallet to settle invoice', 'data' => null];
+                return ['status' => 'ERROR', 'message' => 'User has sufficient balance in wallet to settle invoice' . $walletbalance['balance'], 'data' => null];
             }
             // Calculate amount due after wallet balance
             $amountdue = round($totaldue - $walletbalance['balance'], 2);
-            $paymentlink = config('paynowconfig.paymenturl').'/'.$data['uuid'];
+            $paymentlink = config('paynowconfig.paymenturl') . '/' . $data['uuid'];
             // Create online payment record
             $this->onlinepayment->create([
                 'customer_id' => $invoice->customer->id,
@@ -151,8 +151,8 @@ class _onlinepaymentRepository implements ionlinepaymentInterface
                 ],
             ];
         }
- // Payment is still pending or failed
-        return ['status' => 'ERROR', 'message' => 'Payment failed or pending with status: '.ucfirst($status), 'data' => [
+        // Payment is still pending or failed
+        return ['status' => 'ERROR', 'message' => 'Payment failed or pending with status: ' . ucfirst($status), 'data' => [
             'id' => $payment->id,
             'amount' => $payment->amount,
             'currency' => $payment->currency->name,

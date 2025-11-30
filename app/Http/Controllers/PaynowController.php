@@ -15,7 +15,7 @@ class PaynowController extends Controller
     }
 
     public function check($uuid, Request $request)
-    {
+    { 
 
         return $this->paynowService->checkpaymentstatus($request->all());
     }
