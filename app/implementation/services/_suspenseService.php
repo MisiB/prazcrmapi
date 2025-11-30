@@ -86,7 +86,7 @@ class _suspenseService implements isuspenseService
         }
         
         //get pendingsuspense - we NEED these records to exist!
-        $pendingsuspense = $this->repository->getpendingsuspense($customer->regnumber,$data['accounttype'],$invoice->currency->name);
+        $pendingsuspense = $this->repository->getpendingsuspense($customer->regnumber,$invoice->inventoryitem->type,$invoice->currency->name);
         if(count($pendingsuspense) == 0){  // FIX: Changed from >0 to ==0
             return ['status'=>'ERROR','message'=>"Insufficient funds in wallet of type ".$data['accounttype']." using currency ".$invoice->currency->name];
         }
