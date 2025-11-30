@@ -82,7 +82,7 @@ class _suspenseService implements isuspenseService
         $invoiceAmount = (float) str_replace(',', '', $invoice->amount);
 
         if($invoiceAmount > $walletbalance){
-            return ['status'=>'ERROR','message'=>"Insufficient funds in wallet of type ".$data['accounttype']." using currency ".$invoice->currency->name."invoice amount: ".$invoiceAmount." wallet balance: ".$walletbalance];
+            return ['status'=>'ERROR','message'=>"Insufficient funds in wallet of type ".$data['accounttype']." using currency ".$invoice->currency->name."invoice amount: ".$invoiceAmount." wallet balance: ".$walletbalance."account type: ".$data['accounttype']." currency: ".$invoice->currency->name];
         }
         
         //get pendingsuspense - we NEED these records to exist!
