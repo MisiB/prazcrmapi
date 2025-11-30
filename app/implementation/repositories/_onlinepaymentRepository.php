@@ -100,11 +100,11 @@ class _onlinepaymentRepository implements ionlinepaymentInterface
             // Check wallet balance
             $walletbalance = $this->suspenserepo->getwalletbalance($invoice->customer->regnumber, $invoice->inventoryitem->type, $invoice->currency->name);
 
-            if ($totaldue <= $walletbalance['balance']) {
+            if (number_format($totaldue, 2) <= $walletbalance['balance']) {
                 return ['status' => 'ERROR', 'message' => 'User has sufficient balance in wallet to settle invoice total due' . $totaldue . ' wallet balance: ' . $walletbalance['balance'], 'data' => null];
             }
             // Calculate amount due after wallet balance
-            $amountdue = round($totaldue - $walletbalance['balance'], 2);
+            $amountdue = round(number_format($totaldue, 2) - $walletbalance['balance'], 2);
             $paymentlink = config('paynowconfig.paymenturl') . '/' . $data['uuid'];
             // Create online payment record
             $this->onlinepayment->create([
