@@ -273,7 +273,7 @@ class _suspenseRepository implements isuspenseInterface
                 $totalutilized += $suspense->suspenseutilizations->sum('amount');
             }
         }
-        $balance = number_format($totalsuspense - $totalutilized, 2);
+        $balance = round($totalsuspense - $totalutilized, 2);
 
         return 
             [
