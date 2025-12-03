@@ -190,7 +190,7 @@ class _suspenseRepository implements isuspenseInterface
                             $totalutilized += $suspense->suspenseutilizations->sum('amount');
                         }
                         $array[] = [
-                            'balance' => number_format($totalsuspense - $totalutilized, 2),
+                            'balance' => round($totalsuspense - $totalutilized, 2),
                             'currency' => $currency->name,
                             'regnumber' => $customer->regnumber,
                             'type' => $wallettype
@@ -228,7 +228,11 @@ class _suspenseRepository implements isuspenseInterface
             }
         }
 
-        return $array;
+        return [
+            'status' => 'SUCCESS',
+            'message' => 'SUCCESS',
+            'data' => $array
+        ];
     }
 
     public function getsuspensestatement($customer_id)
