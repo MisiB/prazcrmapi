@@ -178,16 +178,21 @@ class _invoiceRepository implements invoiceInterface
 
     public function markInvoiceAsPaid($invoiceNumber)
     {
-        $invoice = $this->invoice->where('invoicenumber', $invoiceNumber)->first();
+        $invoice = $this->invoice->with('receipts')->where('invoicenumber', $invoiceNumber)->first();
         if (! $invoice) {
             return ['status' => 'ERROR', 'message' => 'Invoice not found', 'data' => null];
         }
-
+        $invoiceAmount = round((float) str_replace(',', '', $invoice->amount),2);
+        $invoicebalance = round($invoiceAmount - round($invoice->receipts->sum('amount'),2),2);
+        if($invoicebalance <= 0){
         $invoice->status = 'PAID';
-        $invoice->settled_at = Carbon::now();
-        $invoice->save();
+            $invoice->settled_at = Carbon::now();
+            $invoice->save();
 
-        return ['status' => 'SUCCESS', 'message' => 'Invoice successfully marked as paid', 'data' => $invoice];
+            return ['status' => 'SUCCESS', 'message' => 'Invoice successfully marked as paid', 'data' => $invoice];
+        }else{
+            return ['status' => 'ERROR', 'message' => 'Invoice balance is not zero', 'data' => null];
+        }
     }
 
     public function updateInvoice($data)

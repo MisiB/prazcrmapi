@@ -92,15 +92,15 @@ class _suspenseService implements isuspenseService
         }
         
         /// check invoice balance
-        $invoiceAmount = (float) str_replace(',', '', $invoice->amount);
-        $invoicebalance = $invoiceAmount - (float)$invoice->receipts->sum('amount');
-        if($invoicebalance <= 0){
-            $response = $this->invoicerepo->markInvoiceAsPaid($invoice->invoicenumber);
+        $invoiceAmount = round((float) str_replace(',', '', $invoice->amount),2);
+        $invoicebalance = round($invoiceAmount - round($invoice->receipts->sum('amount'),2),2);
+       /* if($invoicebalance <= 0){
+         
             if($response['status']=='ERROR'){
                 return $response;
             }
-            return ['status' => 'SUCCESS', 'message' => 'Invoice successfully settled'];
-        }
+           // return ['status' => 'SUCCESS', 'message' => 'Invoice successfully settled'];
+        }*/
         
         //create suspenseutilization
         $balanceDue = $invoicebalance; // Initialize balanceDue
