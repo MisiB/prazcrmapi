@@ -31,8 +31,8 @@ class CustomerController extends Controller
             'name' => $validated['name'],
             'regnumber' => $validated['regnumber'],
             'type' => $validated['type'],
-            'country' => $validated['country'],
-            'business_type' => $validated['business_type'] ?? null,
+            'country' => array_key_exists('country', $validated) ? $validated['country'] : "",
+            'business_type' => array_key_exists('business_type', $validated) ? $validated['business_type'] : null,
         ]);
     }
 
