@@ -159,6 +159,11 @@ class _suspenseService implements isuspenseService
         $finalBalance = $invoiceAmount - (float)$invoice->receipts->sum('amount');
 
         if($finalBalance <= 0){
+
+             // Update settled_at when invoice is successfully settled
+             $invoice->settled_at = \Carbon\Carbon::now();
+             $invoice->save();
+             
             $response = $this->invoicerepo->markInvoiceAsPaid($invoice->invoicenumber);
             if($response['status']=='SUCCESS'){
                 return ['status'=>'SUCCESS','message'=>'Invoice successfully settled'];
