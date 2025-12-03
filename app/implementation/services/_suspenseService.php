@@ -104,7 +104,7 @@ class _suspenseService implements isuspenseService
         
         //create suspenseutilization
         $balanceDue = $invoicebalance; // Initialize balanceDue
-       return $balanceDue;
+     
         foreach($pendingsuspense as $suspense){
             // Break early if balance is fully satisfied
             if($balanceDue <= 0){
