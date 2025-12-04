@@ -60,7 +60,7 @@ class _banktransactionRepository implements ibanktransactionInterface
             $customer_number = $customer->regnumber;
             $stataus = 'CLAIMED';
         }
-        $checktranscation = $this->model->where('sourcereference', '=', $data['sourcereference'])->first();
+        $checktranscation = $this->model->where('sourcereference', '=', $data['source_reference'])->first();
         if ($checktranscation != null) {
             return ['message' => 'Reference already exists', 'status' => 200];
         }
