@@ -96,7 +96,7 @@ class _banktransactionRepository implements ibanktransactionInterface
             }
         }
 
-        return ['message' => 'Reference number saved', 'status' => 'SUCCESS'];
+        return ['message' => 'Reference number saved', 'status' => 200];
     }
 
     public function recallpayment($refencenumber)

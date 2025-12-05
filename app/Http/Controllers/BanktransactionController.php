@@ -30,7 +30,12 @@ class BanktransactionController extends Controller
             'accountnumber'=>$request['accountnumber'],
             'currency'=>$request['currency']
            ]);
-           return $response;
+           if($response['status'] == 200 || $response['status'] == 'SUCCESS'){
+            return response()->json(['description' => $response['message'], 'status' => 'success','code' => 200],200);
+           }else{
+            return response()->json(['description' => $response['message'], 'status' => 'error','code' => 401],401);
+           }
+         
      }
 
      public function recallpayment($referencenumber)
