@@ -58,12 +58,18 @@ class _banktransactionRepository implements ibanktransactionInterface
         if ($customer != null) {
             $customer_id = $customer->id;
             $customer_number = $customer->regnumber;
-            $stataus = 'CLAIMED';
+            $status = 'CLAIMED';
         }
         $checktranscation = $this->model->where('sourcereference', '=', $data['source_reference'])->first();
         if ($checktranscation != null) {
             return ['message' => 'Reference already exists', 'status' => 200];
         }
+        
+        // Convert ZWG to ZiG if currency is ZWG
+        if (isset($data['currency']) && strtoupper($data['currency']) === 'ZWG') {
+            $data['currency'] = 'ZiG';
+        }
+        
         $transaction = $this->model->create([
             'bank_id' => $bank->id,
             'referencenumber' => $data['referencenumber'],
