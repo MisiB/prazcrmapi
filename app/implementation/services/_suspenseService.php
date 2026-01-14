@@ -110,8 +110,16 @@ class _suspenseService implements isuspenseService
             if($balanceDue <= 0){
                 break;
             }
+
+            //ammount used from this suspense
+            $used = round(
+                $suspense->suspenseutilizations->sum('amount'),
+                2
+            );
+
             
-            $availableBalance = round(round($suspense->amount,2) - round($suspense->suspenseutilizations->sum('amount'), 2), 2);
+            // $availableBalance = round(round($suspense->amount,2) - round($suspense->suspenseutilizations->sum('amount'), 2), 2);
+            $availableBalance = round($suspense->amount - $used, 2);
             
             if($availableBalance <= 0){
                 $suspense->status = "UTILIZED";
@@ -176,6 +184,10 @@ class _suspenseService implements isuspenseService
             return ['status'=>'ERROR','message'=>"Insufficient funds in wallet of type ".$data['accounttype']." using currency ".$invoice->currency->name." to fully settle invoice. Remaining balance: ".$balanceDue];
         }
 
-        return ['status'=>'SUCCESS','message'=>'Wallet utilization processed'];
+        return [
+            'status'  => 'ERROR',
+            'message' => 'Invoice not fully settled'
+        ];
+        
     }
 }
