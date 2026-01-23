@@ -137,8 +137,11 @@ class _payeeRepository implements ipayeeInterface
                     if (isset($details['bank_id'])) {
                         $bankid = $details['bank_id'];
                     }
-
-                    $bankaccount = $this->bankaccountrepository->retrievebankaccount($bankid, $record->onlinepayment->invoice->inventoryitem->type, $record->onlinepayment->currency_id);
+                    $type = "NONREFUNDABLE";
+                    if ($record->onlinepayment->invoice != null) {
+                        $type = $record->onlinepayment->invoice->inventoryitem->type;
+                    }
+                    $bankaccount = $this->bankaccountrepository->retrievebankaccount($bankid, $type, $record->onlinepayment->currency_id);
                     if (! $bankaccount) {
                         return [
                             'status' => 'error',
@@ -146,14 +149,14 @@ class _payeeRepository implements ipayeeInterface
                         ];
                     }
                     $suspenresponse = $this->suspenserepository->create([
-                        'customer_id' => $record->onlinepayment->invoice->customer_id,
+                        'customer_id' => $record->onlinepayment->customer_id,
                         'sourcetype' => $record->method,
                         'source_id' => $record->id,
                         'amount' => $record->onlinepayment->amount,
                         'currency' => $record->onlinepayment->currency->name,
                         'status' => 'PENDING',
                         'accountnumber' => $bankaccount->account_number,
-                        'type' => $record->onlinepayment->invoice->inventoryitem->type,
+                        'type' => $type,
                         'posted' => 0,
                     ]);
                     if ($suspenresponse['status'] == 'error') {
