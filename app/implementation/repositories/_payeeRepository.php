@@ -68,7 +68,8 @@ class _payeeRepository implements ipayeeInterface
         try {
 
             $check = $this->payeedetail->firstOrCreate(['email' => $details['email']], ['name' => $details['name'], 'surname' => $details['surname'], 'phone' => $details['phone']]);
-            $uuid = Str::uuid();
+           $temp = "ATM-".rand(100000, 999999)."-".Str::random(3);
+            $uuid = $temp;
             $poll_url = '';
             $redirect_url = '';
             $onlinepayment = $this->onlinepayment->with('invoice', 'invoice.inventoryitem')->find($details['onlinepayment_id']);
