@@ -104,13 +104,13 @@ class _epaymentService implements iepaymentService
                 ];
             }
             $initiationresponse = [
-                'status' => $epayment->Status,
+                'status' => $epayment->status,
                 'initiationId' => $epayment->uuid,
                 'invoicenumber' => $epayment->onlinepayment->invoice->invoicenumber,
                 'accountnumber' => $bankaccount->account_number,
                 'service' => $epayment->onlinepayment->invoice->inventoryitem->name,
                 'purpose' => $epayment->onlinepayment->invoice->description,
-                'Currency' => $epayment->onlinepayment->invoice->currency->name,
+                'currency' => $epayment->onlinepayment->invoice->currency->name,
                 'amount' => round($epayment->onlinepayment->amount, 2),
                 'prnumber' => $epayment->onlinepayment->invoice->customer->regnumber,
                 'accountname' => $epayment->onlinepayment->invoice->customer->name,
@@ -133,7 +133,7 @@ class _epaymentService implements iepaymentService
         $epayment = $this->payeeRepository->getbyuuid($data['initiationId']);
         if ($epayment == null) {
             return [
-                'message' => 'Transaction not found with ID: '.$data['initiationId'],
+                'message' => 'Transaction not found with ID: ' . $data['initiationId'],
                 'status' => 'ERROR',
                 'code' => 500,
                 'errors' => null,
@@ -171,7 +171,7 @@ class _epaymentService implements iepaymentService
         }
         if ($invoice->currency->name != $data['Currency']) {
             return [
-                'message' => 'Currency provided is different from invoiced currency'.$invoice->currency->name.' and '.$data['Currency'],
+                'message' => 'Currency provided is different from invoiced currency' . $invoice->currency->name . ' and ' . $data['Currency'],
                 'status' => 'ERROR',
                 'code' => 500,
                 'errors' => null,
