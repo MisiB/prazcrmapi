@@ -173,7 +173,7 @@ class _epaymentService implements iepaymentService
                 'result' => null,
             ];
         }
-        if ($epayment->amount != $data['Amount']) {
+        if ($epayment['data']->amount != $data['Amount']) {
             return [
                 'message' => 'Amount provided is different from invoiced amount',
                 'status' => 'ERROR',
