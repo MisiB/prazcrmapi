@@ -140,17 +140,17 @@ class _epaymentService implements iepaymentService
                 'result' => null,
             ];
         }
-        if ($epayment->status == 'PAID') {
+        if ($epayment['data']->status == 'PAID') {
             return [
                 'message' => 'transaction already settled',
                 'status' => 'ERROR',
                 'code' => 500,
                 'errors' => null,
-                'result' => ['redirecturl' => $epayment->onlinepayment->return_url],
+                'result' => ['redirecturl' => $epayment['data']->onlinepayment->return_url],
             ];
         }
 
-        $invoice = $epayment?->onlinepayment?->invoice;
+        $invoice = $epayment['data']->onlinepayment->invoice;
         if ($invoice != null) {
           
         
@@ -182,7 +182,7 @@ class _epaymentService implements iepaymentService
             ];
         }
     }
-        $response = $this->payeeRepository->update($epayment->uuid, ['Status' => 'PAID']);
+        $response = $this->payeeRepository->update($epayment['data']->uuid, ['Status' => 'PAID']);
         if ($response['status'] == 'SUCCESS') {
             return [
                 'message' => 'Transaction successfully settled',
