@@ -175,7 +175,7 @@ class _epaymentService implements iepaymentService
         }
         Log::info(json_encode($epayment['data']->amount));
         Log::info(json_encode($data['Amount']));
-        if ($epayment['data']->amount != $data['Amount']) {
+        if ($epayment['data']->onlinepayment->amount != $data['Amount']) {
             return [
                 'message' => 'Amount provided is different from invoiced amount',
                 'status' => 'ERROR',
