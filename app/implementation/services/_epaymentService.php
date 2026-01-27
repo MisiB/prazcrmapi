@@ -6,7 +6,7 @@ use App\Interfaces\repositories\ibankaccountInterface;
 use App\Interfaces\repositories\ibankInterface;
 use App\Interfaces\repositories\ipayeeInterface;
 use App\Interfaces\services\iepaymentService;
-
+use Illuminate\Support\Facades\Log;
 class _epaymentService implements iepaymentService
 {
     /**
@@ -140,6 +140,7 @@ class _epaymentService implements iepaymentService
                 'result' => null,
             ];
         }
+        Log::info(json_encode($epayment));
         if ($epayment['data']->status == 'PAID') {
             return [
                 'message' => 'transaction already settled',
