@@ -150,16 +150,10 @@ class _epaymentService implements iepaymentService
             ];
         }
 
-        $invoice = $epayment->onlinepayment->invoice;
-        if ($invoice == null) {
-            return [
-                'message' => 'Invoice not found',
-                'status' => 'ERROR',
-                'code' => 404,
-                'errors' => ['Invoice not found'],
-                'result' => null,
-            ];
-        }
+        $invoice = $epayment?->onlinepayment?->invoice;
+        if ($invoice != null) {
+          
+        
         if ($invoice->status == 'PAID') {
             return [
                 'message' => 'Invoice already settled',
@@ -187,6 +181,7 @@ class _epaymentService implements iepaymentService
                 'result' => null,
             ];
         }
+    }
         $response = $this->payeeRepository->update($epayment->uuid, ['Status' => 'PAID']);
         if ($response['status'] == 'SUCCESS') {
             return [

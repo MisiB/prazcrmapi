@@ -32,7 +32,6 @@ class EpaymentController extends Controller
             'TransactionDate' => $request['TransactionDate'],
             'Reference' => $request['Reference'],
             'Amount' => $request['Amount'],
-            'Currency' => $request['Currency'],
-            'status' => $request['status']]);
+            'Currency' => $request['Currency']]);
     }
 }
