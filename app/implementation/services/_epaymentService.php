@@ -173,7 +173,7 @@ class _epaymentService implements iepaymentService
                 'result' => null,
             ];
         }
-        Log::info(json_encode($epayment['data']->amount));
+        Log::info(json_encode($epayment['data']->onlinepayment->amount));
         Log::info(json_encode($data['Amount']));
         if ($epayment['data']->onlinepayment->amount != $data['Amount']) {
             return [
@@ -185,7 +185,7 @@ class _epaymentService implements iepaymentService
             ];
         }
     }
-        $response = $this->payeeRepository->update(['Status' => 'PAID'],$epayment['data']->uuid);
+        $response = $this->payeeRepository->update(['status' => 'PAID'],$epayment['data']->uuid);
         Log::info(json_encode($response));
         if (strtoupper($response['status']) == 'SUCCESS') {
             return [

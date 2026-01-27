@@ -133,7 +133,7 @@ class _payeeRepository implements ipayeeInterface
         try {
             $record = $this->payeeattempt->with('onlinepayment.invoice.inventoryitem')->where('uuid', $uuid)->first();
             if ($record) {
-                if ($details['status'] == 'APPROVED') {
+                if (strtoupper($details['status']) == 'PAID') {
                     $bankid = 1;
                     if (isset($details['bank_id'])) {
                         $bankid = $details['bank_id'];
