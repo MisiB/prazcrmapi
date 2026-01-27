@@ -186,6 +186,7 @@ class _epaymentService implements iepaymentService
         }
     }
         $response = $this->payeeRepository->update(['Status' => 'PAID'],$epayment['data']->uuid);
+        Log::info(json_encode($response));
         if (strtoupper($response['status']) == 'SUCCESS') {
             return [
                 'message' => 'Transaction successfully settled',
