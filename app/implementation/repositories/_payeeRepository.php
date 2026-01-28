@@ -12,7 +12,7 @@ use App\Models\Payeedetail;
 use App\Notifications\PaymentNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Log;
 class _payeeRepository implements ipayeeInterface
 {
     /**
@@ -131,7 +131,9 @@ class _payeeRepository implements ipayeeInterface
     public function update(array $details, $uuid)
     {
         try {
+            Log::info(json_encode($details));
             $record = $this->payeeattempt->with('onlinepayment.invoice.inventoryitem')->where('uuid', $uuid)->first();
+            Log::info(json_encode($record));
             if ($record) {
                 if (strtoupper($details['status']) == 'PAID') {
                     $bankid = 1;
