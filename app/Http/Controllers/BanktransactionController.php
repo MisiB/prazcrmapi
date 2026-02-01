@@ -17,7 +17,7 @@ class BanktransactionController extends Controller
         $this->repo = $repo;
      }
 
-     public function create(BanktransactionRequest $request) {
+     public function create(Request $request) {
       
         $response = $this->repo->createtransaction([
             'authcode'=>$request['authcode'],
