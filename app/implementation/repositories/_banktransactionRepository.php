@@ -75,7 +75,7 @@ class _banktransactionRepository implements ibanktransactionInterface
                 'source_reference' => $data['source_reference'] ?? null,
             ]);
             $data['source_reference'] = $data['statement_reference'];
-            return ['message' => 'Source reference is required', 'status' => 401];
+           // return ['message' => 'Source reference is required', 'status' => 401];
         }
     
         $checktranscation = $this->model->where('sourcereference', '=', $data['source_reference'])->orWhere('statementreference', '=', $data['statement_reference'])->first();
