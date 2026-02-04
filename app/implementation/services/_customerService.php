@@ -159,7 +159,7 @@ class _customerService implements servicecustomerInterface
                     $this->customerrepo->update($updateData, $check_customer_regnumber->id);
                     return [
                         "status"=>"SUCCESS",
-                        "message"=>"Account updated successfully"
+                        "message"=>"Company name updated successfully"
                         ];
                 }
             }
