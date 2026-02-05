@@ -7,6 +7,7 @@ use App\Interfaces\repositories\ibankInterface;
 use App\Interfaces\repositories\ipayeeInterface;
 use App\Interfaces\services\iepaymentService;
 use Illuminate\Support\Facades\Log;
+
 class _epaymentService implements iepaymentService
 {
     /**
@@ -130,6 +131,7 @@ class _epaymentService implements iepaymentService
 
     public function posttransaction($data)
     {
+        Log::info(json_encode($data));
         $epayment = $this->payeeRepository->getbyuuid($data['initiationId']);
         if ($epayment == null) {
             return [
@@ -153,39 +155,39 @@ class _epaymentService implements iepaymentService
 
         $invoice = $epayment['data']->onlinepayment->invoice;
         if ($invoice != null) {
-          
-        
-        if ($invoice->status == 'PAID') {
-            return [
-                'message' => 'Invoice already settled',
-                'status' => 'ERROR',
-                'code' => 500,
-                'errors' => null,
-                'result' => null,
-            ];
+
+
+            if ($invoice->status == 'PAID') {
+                return [
+                    'message' => 'Invoice already settled',
+                    'status' => 'ERROR',
+                    'code' => 500,
+                    'errors' => null,
+                    'result' => null,
+                ];
+            }
+            if ($invoice->currency->name != $data['Currency']) {
+                return [
+                    'message' => 'Currency provided is different from invoiced currency' . $invoice->currency->name . ' and ' . $data['Currency'],
+                    'status' => 'ERROR',
+                    'code' => 500,
+                    'errors' => null,
+                    'result' => null,
+                ];
+            }
+            Log::info(json_encode($epayment['data']->onlinepayment->amount));
+            Log::info(json_encode($data['Amount']));
+            if ($epayment['data']->onlinepayment->amount != $data['Amount']) {
+                return [
+                    'message' => 'Amount provided is different from invoiced amount',
+                    'status' => 'ERROR',
+                    'code' => 500,
+                    'errors' => null,
+                    'result' => null,
+                ];
+            }
         }
-        if ($invoice->currency->name != $data['Currency']) {
-            return [
-                'message' => 'Currency provided is different from invoiced currency' . $invoice->currency->name . ' and ' . $data['Currency'],
-                'status' => 'ERROR',
-                'code' => 500,
-                'errors' => null,
-                'result' => null,
-            ];
-        }
-        Log::info(json_encode($epayment['data']->onlinepayment->amount));
-        Log::info(json_encode($data['Amount']));
-        if ($epayment['data']->onlinepayment->amount != $data['Amount']) {
-            return [
-                'message' => 'Amount provided is different from invoiced amount',
-                'status' => 'ERROR',
-                'code' => 500,
-                'errors' => null,
-                'result' => null,
-            ];
-        }
-    }
-        $response = $this->payeeRepository->update(['status' => 'PAID'],$epayment['data']->uuid);
+        $response = $this->payeeRepository->update(['status' => 'PAID'], $epayment['data']->uuid);
         Log::info(json_encode($response));
         if (strtoupper($response['status']) == 'SUCCESS') {
             return [
