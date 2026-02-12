@@ -93,7 +93,33 @@ class _epaymentService implements iepaymentService
         $epaymentresponse = $this->payeeRepository->getbyuuid($data['invoicenumber']);
         if (strtoupper($epaymentresponse['status']) == 'SUCCESS') {
             $epayment = $epaymentresponse['data'];
-
+            Log::info(json_encode($epayment));
+            if($epayment->onlinepayment == null) {
+                return [
+                    'message' => 'Online payment not found',
+                    'status' => 'ERROR',
+                    'code' => 404,
+                    'errors' => ['Online payment not found'],
+                    'result' => null,
+                ];
+            }
+            if($epayment->onlinepayment->invoice == null) {
+                return [
+                    'message' => 'Invoice not found',
+                    'status' => 'ERROR',
+                    'code' => 404,
+                    'errors' => ['Invoice not found'],
+                    'result' => null,
+                ];
+            }
+            if($epayment->onlinepayment->invoice->inventoryitem == null) {
+                return [
+                    'message' => 'Inventory item not found',
+                    'status' => 'ERROR',
+                    'code' => 404,
+                    'errors' => ['Inventory item not found'],
+                    'result' => null,
+                ];
             $bankaccount = $this->bankaccountrepo->retrievebankaccount($bank->id, $epayment->onlinepayment->invoice->inventoryitem->type, $epayment->onlinepayment->invoice->currency_id);
             if (! $bankaccount) {
                 return [
