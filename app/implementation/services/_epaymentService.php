@@ -120,6 +120,7 @@ class _epaymentService implements iepaymentService
                     'errors' => ['Inventory item not found'],
                     'result' => null,
                 ];
+            }
             $bankaccount = $this->bankaccountrepo->retrievebankaccount($bank->id, $epayment->onlinepayment->invoice->inventoryitem->type, $epayment->onlinepayment->invoice->currency_id);
             if (! $bankaccount) {
                 return [
