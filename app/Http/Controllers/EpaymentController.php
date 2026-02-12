@@ -7,7 +7,7 @@ use App\Interfaces\services\iepaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Facades\Log;
 class EpaymentController extends Controller
 {
     protected $service;
@@ -29,6 +29,7 @@ class EpaymentController extends Controller
 
     public function posttransaction(Request $request)
     {
+        Log::info("posttransaction:".json_encode($request->all()));
         $validator = Validator::make($request->all(), [
             'initiationId' => 'required',
             'TransactionDate' => 'required',
@@ -43,6 +44,7 @@ class EpaymentController extends Controller
         $removedtoken = str_replace('"', ' ', $token);
         $newtoken = str_replace('Bearer ', ' ', $removedtoken);
         $final = Str::trim($newtoken);
+        Log::info("final:".$final);
         return $this->service->posttransaction(['token' => $final, 'initiationId' => $request['initiationId'],
             'TransactionDate' => $request['TransactionDate'],
             'Reference' => $request['Reference'],
