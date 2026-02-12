@@ -158,7 +158,7 @@ class _epaymentService implements iepaymentService
 
     public function posttransaction($data)
     {
-        Log::info(json_encode($data));
+        Log::info("payload:".json_encode($data));
         $bank = $this->bankrepo->getBankByToken($data['token']);
         if (! $bank) {
             return [
@@ -179,7 +179,7 @@ class _epaymentService implements iepaymentService
                 'result' => null,
             ];
         }
-        Log::info(json_encode($epayment));
+        Log::info("epayment:".json_encode($epayment));
         if ($epayment['data']->status == 'PAID') {
             return [
                 'message' => 'transaction already settled',
@@ -223,7 +223,7 @@ class _epaymentService implements iepaymentService
                     'result' => null,
                 ];
             }
-        }
+        
         $response = $this->payeeRepository->update(['status' => 'PAID'], $epayment['data']->uuid);
         Log::info(json_encode($response));
         if (strtoupper($response['status']) == 'SUCCESS') {
@@ -243,6 +243,15 @@ class _epaymentService implements iepaymentService
                 'result' => null,
             ];
         }
+    }else{
+        return [
+            'message' => 'Invoice not found',
+            'status' => 'ERROR',
+            'code' => 404,
+            'errors' => ['Invoice not found'],
+            'result' => null,
+        ];
+    }
         /*
 
         $bankaccount = $this->bankaccountrepo->retrievebankaccount($epayment->bank_id, $invoice->inventoryitem->type, $invoice->currency_id);
