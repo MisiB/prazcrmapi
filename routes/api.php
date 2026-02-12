@@ -17,8 +17,8 @@ use App\Http\Controllers\WorkshopController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('sendPayment', [BanktransactionController::class, 'create'])->name('sendPayment');
-Route::get('CheckInvoicenumber/{invoicenumber}', [EpaymentController::class, 'checkinvoice']);
-Route::post('PostTransaction', [EpaymentController::class, 'posttransaction']);
+Route::get('CheckInvoicenumber/{invoicenumber}', [EpaymentController::class, 'checkinvoice'])->name('checkinvoice');
+Route::post('PostTransaction', [EpaymentController::class, 'posttransaction'])->name('posttransaction');
 Route::get('recallPayment/{referencenumber}', [BanktransactionController::class, 'recallpayment'])->name('recallPayment');
 Route::post('BankTransaction/Search', [BanktransactionController::class, 'search'])->name('banktransaction.search');
 Route::post('BankTransaction/Claims', [BanktransactionController::class, 'claim'])->name('banktransaction.claim');

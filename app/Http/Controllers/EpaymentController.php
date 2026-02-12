@@ -6,6 +6,7 @@ use App\Http\Requests\EpaymentRequest;
 use App\Interfaces\services\iepaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 
 class EpaymentController extends Controller
 {
@@ -26,9 +27,23 @@ class EpaymentController extends Controller
         return $this->service->checkinvoice(['token' => $final, 'invoicenumber' => $invoicenumber]);
     }
 
-    public function posttransaction(EpaymentRequest $request)
+    public function posttransaction(Request $request)
     {
-        return $this->service->posttransaction(['initiationId' => $request['initiationId'],
+        $validator = Validator::make($request->all(), [
+            'initiationId' => 'required',
+            'TransactionDate' => 'required',
+            'Reference' => 'required',
+            'Amount' => 'required',
+            'Currency' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+        $token = $request->header('AUTHORIZATION');
+        $removedtoken = str_replace('"', ' ', $token);
+        $newtoken = str_replace('Bearer ', ' ', $removedtoken);
+        $final = Str::trim($newtoken);
+        return $this->service->posttransaction(['token' => $final, 'initiationId' => $request['initiationId'],
             'TransactionDate' => $request['TransactionDate'],
             'Reference' => $request['Reference'],
             'Amount' => $request['Amount'],

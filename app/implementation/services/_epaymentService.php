@@ -132,6 +132,16 @@ class _epaymentService implements iepaymentService
     public function posttransaction($data)
     {
         Log::info(json_encode($data));
+        $bank = $this->bankrepo->getBankByToken($data['token']);
+        if (! $bank) {
+            return [
+                'message' => 'Unauthorized',
+                'status' => 'ERROR',
+                'code' => 401,
+                'errors' => ['Unauthorized'],
+                'result' => null,
+            ];
+        }
         $epayment = $this->payeeRepository->getbyuuid($data['initiationId']);
         if ($epayment == null) {
             return [
