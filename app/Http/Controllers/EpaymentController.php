@@ -34,8 +34,7 @@ class EpaymentController extends Controller
             'initiationId' => 'required',
             'TransactionDate' => 'required',
             'Reference' => 'required',
-            'Amount' => 'required',
-            'Currency' => 'required',
+            'Amount' => 'required'
         ]);
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
@@ -48,7 +47,6 @@ class EpaymentController extends Controller
         return $this->service->posttransaction(['token' => $final, 'initiationId' => $request['initiationId'],
             'TransactionDate' => $request['TransactionDate'],
             'Reference' => $request['Reference'],
-            'Amount' => $request['Amount'],
-            'Currency' => $request['Currency']]);
+            'Amount' => $request['Amount']]);
     }
 }

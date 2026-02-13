@@ -190,7 +190,7 @@ class _epaymentService implements iepaymentService
             ];
         }
 
-        $invoice = $epayment['data']->onlinepayment->invoice;
+        $invoice = $epayment['data']?->onlinepayment?->invoice;
         if ($invoice != null) {
 
 
@@ -203,15 +203,7 @@ class _epaymentService implements iepaymentService
                     'result' => null,
                 ];
             }
-            if ($invoice->currency->name != $data['Currency']) {
-                return [
-                    'message' => 'Currency provided is different from invoiced currency' . $invoice->currency->name . ' and ' . $data['Currency'],
-                    'status' => 'ERROR',
-                    'code' => 500,
-                    'errors' => null,
-                    'result' => null,
-                ];
-            }
+           
             Log::info(json_encode($epayment['data']->onlinepayment->amount));
             Log::info(json_encode($data['Amount']));
             if ($epayment['data']->onlinepayment->amount != $data['Amount']) {
