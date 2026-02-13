@@ -28,6 +28,7 @@ class _epaymentService implements iepaymentService
 
     public function checkinvoice($data)
     {
+        Log::info("checkinvoice data:".json_encode($data));
         $bank = $this->bankrepo->getBankByToken($data['token']);
         if (! $bank) {
             return [
@@ -224,14 +225,14 @@ class _epaymentService implements iepaymentService
             }
         
         $response = $this->payeeRepository->update(['status' => 'PAID','poll_url' => $data['Reference']], $epayment['data']->uuid);
-        Log::info(json_encode($response));
+        Log::info("update response:".json_encode($response));
         if (strtoupper($response['status']) == 'SUCCESS') {
             $response = [
                 'message' => 'Transaction successfully settled',
                 'status' => 'SUCCESS',
                 'code' => 200,
                 'errors' => null,
-                'result' => ['redirecturl' => $response['redirect_url']],
+                'result' => ['redirecturl' => $epayment['data']->onlinepayment->return_url],
             ];
             Log::info("response:".json_encode($response));
             return $response;
