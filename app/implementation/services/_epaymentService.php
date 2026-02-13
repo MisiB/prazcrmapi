@@ -181,13 +181,15 @@ class _epaymentService implements iepaymentService
         }
         Log::info("epayment:".json_encode($epayment));
         if ($epayment['data']->status == 'PAID') {
-            return [
+            $response = [
                 'message' => 'transaction already settled',
                 'status' => 'ERROR',
                 'code' => 500,
                 'errors' => null,
                 'result' => ['redirecturl' => $epayment['data']->onlinepayment->return_url],
             ];
+            Log::info("response:".json_encode($response));
+            return $response;
         }
 
         $invoice = $epayment['data']?->onlinepayment?->invoice;
@@ -195,46 +197,54 @@ class _epaymentService implements iepaymentService
 
 
             if ($invoice->status == 'PAID') {
-                return [
+                $response = [
                     'message' => 'Invoice already settled',
                     'status' => 'ERROR',
                     'code' => 500,
                     'errors' => null,
                     'result' => null,
                 ];
+                Log::info("response:".json_encode($response));
+                return $response;
             }
         }
            
             Log::info(json_encode($epayment['data']->onlinepayment->amount));
             Log::info(json_encode($data['Amount']));
             if ($epayment['data']->onlinepayment->amount != $data['Amount']) {
-                return [
+                $response = [
                     'message' => 'Amount provided is different from invoiced amount',
                     'status' => 'ERROR',
                     'code' => 500,
                     'errors' => null,
                     'result' => null,
                 ];
+                Log::info("response:".json_encode($response));
+                return $response;
             }
         
         $response = $this->payeeRepository->update(['status' => 'PAID','poll_url' => $data['Reference']], $epayment['data']->uuid);
         Log::info(json_encode($response));
         if (strtoupper($response['status']) == 'SUCCESS') {
-            return [
+            $response = [
                 'message' => 'Transaction successfully settled',
                 'status' => 'SUCCESS',
                 'code' => 200,
                 'errors' => null,
-                'result' => null,
+                'result' => ['redirecturl' => $response['redirect_url']],
             ];
+            Log::info("response:".json_encode($response));
+            return $response;
         } else {
-            return [
+            $response = [
                 'message' => 'Transaction failed to settle',
                 'status' => 'ERROR',
                 'code' => 500,
                 'errors' => null,
                 'result' => null,
             ];
+            Log::info("response:".json_encode($response));
+            return $response;
         }
    
         /*
