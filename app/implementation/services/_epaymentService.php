@@ -203,6 +203,7 @@ class _epaymentService implements iepaymentService
                     'result' => null,
                 ];
             }
+        }
            
             Log::info(json_encode($epayment['data']->onlinepayment->amount));
             Log::info(json_encode($data['Amount']));
@@ -216,7 +217,7 @@ class _epaymentService implements iepaymentService
                 ];
             }
         
-        $response = $this->payeeRepository->update(['status' => 'PAID'], $epayment['data']->uuid);
+        $response = $this->payeeRepository->update(['status' => 'PAID','poll_url' => $data['Reference']], $epayment['data']->uuid);
         Log::info(json_encode($response));
         if (strtoupper($response['status']) == 'SUCCESS') {
             return [
@@ -235,15 +236,7 @@ class _epaymentService implements iepaymentService
                 'result' => null,
             ];
         }
-    }else{
-        return [
-            'message' => 'Invoice not found',
-            'status' => 'ERROR',
-            'code' => 404,
-            'errors' => ['Invoice not found'],
-            'result' => null,
-        ];
-    }
+   
         /*
 
         $bankaccount = $this->bankaccountrepo->retrievebankaccount($epayment->bank_id, $invoice->inventoryitem->type, $invoice->currency_id);
