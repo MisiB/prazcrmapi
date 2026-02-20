@@ -9,6 +9,8 @@ use App\Models\Monthlysuspensereport;
 use App\Models\Suspense;
 use App\Models\Suspenseutilization;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
 
 class _suspenseRepository implements isuspenseInterface
 {
@@ -115,13 +117,13 @@ class _suspenseRepository implements isuspenseInterface
     public function getpendingsuspense($regnumber, $accounttype, $currency)
     {
         $customer = $this->customer->where('regnumber', $regnumber)->first();
-        
+
         if (!$customer) {
             return collect([]); // Return empty collection if customer not found
         }
-        
+
         return $this->model->with('suspenseutilizations')
-            ->where('customer_id', $customer->id) 
+            ->where('customer_id', $customer->id)
             ->where('status', 'PENDING')
             ->where('sourcetype', '!=', 'bbf')
             ->where('type', $accounttype)
@@ -166,8 +168,8 @@ class _suspenseRepository implements isuspenseInterface
     {
         $customer = $this->customer->where('regnumber', $regnumber)->first();
 
-         // Check if customer exists
-         if (!$customer) {
+        // Check if customer exists
+        if (!$customer) {
             return [
                 'status' => 'ERROR',
                 'message' => 'Account not found',
@@ -194,7 +196,7 @@ class _suspenseRepository implements isuspenseInterface
                             'currency' => $currency->name,
                             'regnumber' => $customer->regnumber,
                             'type' => $wallettype
-                            
+
                         ];
                     } else {
                         $array[] = [
@@ -202,7 +204,7 @@ class _suspenseRepository implements isuspenseInterface
                             'currency' => $currency->name,
                             'regnumber' => $customer->regnumber,
                             'type' => $wallettype,
-                            
+
                         ];
                     }
                 }
@@ -213,7 +215,6 @@ class _suspenseRepository implements isuspenseInterface
                 'message' => 'SUCCESS',
                 'data' => $array
             ];
-
         } else {
             foreach ($wallettypes as $wallettype) {
                 foreach ($currencylist as $currency) {
@@ -254,17 +255,20 @@ class _suspenseRepository implements isuspenseInterface
 
     public function getwalletbalance($regnumber, $accounttype, $currency)
     {
+        Log::info("Getting wallet balance for regnumber: $regnumber, accounttype: $accounttype, currency: $currency");
         $customer = $this->customer->where('regnumber', $regnumber)->first();
-
-         // Check if customer exists
-         if (!$customer) {
+        Log::info("Customer found: " . ($customer ? 'Yes' : 'No'));
+        // Check if customer exists
+        if (!$customer) {
+            Log::error("Account not found for regnumber: $regnumber");
             return [
                 'status' => 'ERROR',
                 'message' => 'Account not found',
                 'data' => null
             ];
         }
-        $suspenses = $this->model->with('suspenseutilizations')->where('customer_id', $customer->id)->where('status', 'PENDING') ->where('sourcetype', '!=', 'bbf')->where('type', $accounttype)->where('currency', $currency)->get();
+        $suspenses = $this->model->with('suspenseutilizations')->where('customer_id', $customer->id)->where('status', 'PENDING')->where('sourcetype', '!=', 'bbf')->where('type', $accounttype)->where('currency', $currency)->get();
+        Log::info("Suspenses found: " . count($suspenses));
         $totalsuspense = 0;
         $totalutilized = 0;
         if (count($suspenses) > 0) {
@@ -274,14 +278,14 @@ class _suspenseRepository implements isuspenseInterface
             }
         }
         $balance = round($totalsuspense - $totalutilized, 2);
-
-        return 
+        Log::info("Total suspense: $totalsuspense, Total utilized: $totalutilized, Balance: $balance");
+        return
             [
                 'balance' => $balance,
                 'currency' => $currency,
                 'regnumber' => $customer->regnumber,
                 'type' => $accounttype
-                
+
             ];
     }
 
@@ -301,15 +305,15 @@ class _suspenseRepository implements isuspenseInterface
             }
         }
         $walletbalance = number_format($totalsuspense - $totalutilized, 2);
-        $finalbalance = (float)str_replace(',', '',$walletbalance);       
+        $finalbalance = (float)str_replace(',', '', $walletbalance);
         if ($finalbalance < $amount) {
             return ['status' => 'error', 'message' => 'Insufficient balance', 'data' => null];
         }
 
         foreach ($suspenses as $suspense) {
-            $suspensebalance = str_replace(',', '',$suspense->amount) - $suspense->suspenseutilizations->sum('amount');
+            $suspensebalance = str_replace(',', '', $suspense->amount) - $suspense->suspenseutilizations->sum('amount');
             // / if suspense balance is less than or equal to amount create  suspenseutilization record and update suspense status to utilized
-             //dd($suspensebalance, $amount);
+            //dd($suspensebalance, $amount);
             if ($suspensebalance <= $amount) {
                 $this->suspenseutilizations->create([
                     'amount' => $suspensebalance,
