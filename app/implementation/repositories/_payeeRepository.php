@@ -6,6 +6,7 @@ use App\Interfaces\repositories\ibankaccountInterface;
 use App\Interfaces\repositories\ipayeeInterface;
 use App\Interfaces\repositories\isuspenseInterface;
 use App\Interfaces\services\ipaynowInterface;
+use App\Interfaces\services\izimswitchInterface;
 use App\Models\Onlinepayment;
 use App\Models\Payeeattempt;
 use App\Models\Payeedetail;
@@ -13,6 +14,7 @@ use App\Notifications\PaymentNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+
 class _payeeRepository implements ipayeeInterface
 {
     /**
@@ -29,8 +31,9 @@ class _payeeRepository implements ipayeeInterface
     protected $onlinepayment;
 
     protected $paynowService;
+    protected $zimswitchService;
 
-    public function __construct(Payeedetail $payeedetail, Payeeattempt $payeeattempt, isuspenseInterface $suspenseRepository, ibankaccountInterface $bankaccountrepository, Onlinepayment $onlinepayment, ipaynowInterface $paynowService)
+    public function __construct(Payeedetail $payeedetail, Payeeattempt $payeeattempt, isuspenseInterface $suspenseRepository, izimswitchInterface $zimswitchService, ibankaccountInterface $bankaccountrepository, Onlinepayment $onlinepayment, ipaynowInterface $paynowService)
     {
         $this->payeedetail = $payeedetail;
         $this->payeeattempt = $payeeattempt;
@@ -38,6 +41,7 @@ class _payeeRepository implements ipayeeInterface
         $this->bankaccountrepository = $bankaccountrepository;
         $this->onlinepayment = $onlinepayment;
         $this->paynowService = $paynowService;
+        $this->zimswitchService = $zimswitchService;
     }
 
     public function getbyemail($email)
@@ -68,11 +72,12 @@ class _payeeRepository implements ipayeeInterface
         try {
 
             $check = $this->payeedetail->firstOrCreate(['email' => $details['email']], ['name' => $details['name'], 'surname' => $details['surname'], 'phone' => $details['phone']]);
-           $temp = "ATM-".rand(100000, 999999)."-".Str::random(3);
+            $temp = "ATM-" . rand(100000, 999999) . "-" . Str::random(3);
             $uuid = $temp;
             $poll_url = '';
             $redirect_url = '';
-            $onlinepayment = $this->onlinepayment->with('invoice', 'invoice.inventoryitem')->find($details['onlinepayment_id']);
+            $message = "";
+            $onlinepayment = $this->onlinepayment->with('invoice', 'currency', 'invoice.inventoryitem')->find($details['onlinepayment_id']);
             if (! $onlinepayment) {
                 return [
                     'status' => 'error',
@@ -92,8 +97,8 @@ class _payeeRepository implements ipayeeInterface
                 ];
             }
 
-            if ($details['method'] == 'paynowmerchant') {
-                $data = ['email' => $check->email, 'amount' => $onlinepayment->amount, 'description' => $onlinepayment->invoice->inventoryitem->name, 'reference' => $uuid, 'type' => $onlinepayment->invoice->inventoryitem->type, 'currency_id' => $onlinepayment->currency_id];
+            if (strtolower($details['method']) == 'paynow') {
+                $data = ['email' => $check->email, 'amount' => $onlinepayment->amount, 'uuid' => $onlinepayment->uuid, 'description' => $onlinepayment->invoice->inventoryitem->name, 'reference' => $uuid, 'type' => $onlinepayment->invoice->inventoryitem->type, 'currency_id' => $onlinepayment->currency_id];
                 $paynowresponse = $this->paynowService->initiatepayment($data);
                 if ($paynowresponse['status'] == 'error') {
                     return [
@@ -103,8 +108,52 @@ class _payeeRepository implements ipayeeInterface
                 } else {
                     $poll_url = $paynowresponse['pollurl'];
                     $redirect_url = $paynowresponse['redirecturl'];
+                    $message = $paynowresponse['message'];
                 }
             }
+
+            if (strtolower($details['method']) == 'ecocash' || strtolower($details['method']) == "onemoney") {
+                $data = ['email' => $check->email, 'amount' => $onlinepayment->amount, 'description' => $onlinepayment->invoice->inventoryitem->name, 'reference' => $uuid, 'type' => $onlinepayment->invoice->inventoryitem->type, 'currency_id' => $onlinepayment->currency_id, 'phone' => $details['phone'], 'method' => strtolower($details['method'])];
+                $paynowresponse = $this->paynowService->initiatemobilepayment($data);
+                if ($paynowresponse['status'] == 'error') {
+                    return [
+                        'status' => 'error',
+                        'message' => $paynowresponse['message'],
+                    ];
+                } else {
+                    $poll_url = $paynowresponse['pollurl'];
+
+                    $redirect_url = $paynowresponse['redirecturl'];
+                    $message = $paynowresponse['message'];
+                }
+            }
+            if (strtolower($details['method']) == "fbc") {
+                $redirect_url = config("paynowconfig.fbc") . $uuid;
+            }
+
+            if (strtolower($details['method']) == "biller") {
+                $redirect_url = config("paynowconfig.paynowbiller") . $uuid;
+            }
+            if (strtolower($details['method']) == "zimswitch") {
+                $payload = [
+                    "currency" => $onlinepayment->currency->name,
+                    "amount" => $onlinepayment->amount
+                ];
+                $response = $this->zimswitchService->requestcheckout($payload);
+                return [
+                    "status" => $response["status"],
+                    "data" => $response["data"],
+                    "reference" => $temp,
+                    "onlinepayment" => [
+                        "currency" => $onlinepayment->currency->name,
+                        "amount" => $onlinepayment->amount,
+                        "description" => $onlinepayment->description,
+                        "uuid" => $onlinepayment->uuid
+                    ]
+                ];
+            }
+
+
 
             $check->attempts()->create([
                 'onlinepayment_id' => $details['onlinepayment_id'],
@@ -116,7 +165,7 @@ class _payeeRepository implements ipayeeInterface
 
             return [
                 'status' => 'success',
-                'message' => 'Payee details created successfully',
+                'message' => $message,
                 'data' => $uuid,
                 'redirect_url' => $redirect_url,
             ];
@@ -177,6 +226,7 @@ class _payeeRepository implements ipayeeInterface
                         return [
                             'status' => 'success',
                             'message' => 'Payee details updated successfully',
+                            'return_url' => $record?->onlinepayment?->return_url,
                             'data' => $record,
                         ];
                     }

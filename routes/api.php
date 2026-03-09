@@ -14,6 +14,7 @@ use App\Http\Controllers\PaynowController;
 use App\Http\Controllers\PublicWorkshopController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\WorkshopController;
+use App\Http\Controllers\ZimswitchController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('sendPayment', [BanktransactionController::class, 'create'])->name('sendPayment');
@@ -43,20 +44,22 @@ Route::post('payees/getbyemail', [PayeeController::class, 'getbyemail']);
 Route::get('payees/{uuid}', [PayeeController::class, 'getbyuuid']);
 Route::post('payees', [PayeeController::class, 'create']);
 Route::put('payees/{uuid}', [PayeeController::class, 'update']);
+Route::get('payees/{uuid}/check', [PayeeController::class, 'check']);
 Route::post('paynow/{uuid}/verify', [PaynowController::class, 'check']);
+Route::post('zimswitch/verify', [ZimswitchController::class, 'verify']);
 
 // Public Workshop API Routes
 Route::prefix('public-workshops')->group(function () {
-     Route::get('/open', [WorkshopController::class, 'getOpenWorkshops'])->name('api.workshops.getopenworkshops');
-     Route::get('/{id}', [WorkshopController::class, 'viewworkshop'])->name('api.workshops.viewworkshop');
-     Route::get('/{regnumber}/orders', [WorkshopController::class, 'getordersbyregnumber'])->name('api.workshops.getordersbyregnumber');
+    Route::get('/open', [WorkshopController::class, 'getOpenWorkshops'])->name('api.workshops.getopenworkshops');
+    Route::get('/{id}', [WorkshopController::class, 'viewworkshop'])->name('api.workshops.viewworkshop');
+    Route::get('/{regnumber}/orders', [WorkshopController::class, 'getordersbyregnumber'])->name('api.workshops.getordersbyregnumber');
 });
 
 // Issue Ticket API Routes
 Route::prefix('helpdesk')->group(function () {
     // Public endpoints - no authentication required
     Route::get('/settings', [SettingController::class, 'getsettings'])->name('api.helpdesk.settings');
-       // Ticket creation - no authentication required
+    // Ticket creation - no authentication required
     Route::post('/tickets', [IssueTicketController::class, 'store'])->name('api.helpdesk.tickets.create');
 
     // Ticket tracking by email - no authentication required
@@ -66,18 +69,18 @@ Route::prefix('helpdesk')->group(function () {
     Route::get('/tickets/number/{ticketNumber}', [IssueTicketController::class, 'showByTicketNumber'])->name('api.helpdesk.tickets.show-by-number');
 
     // Protected endpoints - require Sanctum authentication
-  
-        // List all tickets with filters
-        Route::get('/tickets/{email}', [IssueTicketController::class, 'index'])->name('api.helpdesk.tickets.index');
 
-        // Get specific ticket by ID
-        Route::get('/tickets/{id}/show', [IssueTicketController::class, 'show'])->name('api.helpdesk.tickets.show');
+    // List all tickets with filters
+    Route::get('/tickets/{email}', [IssueTicketController::class, 'index'])->name('api.helpdesk.tickets.index');
 
-        // Update ticket status
-        Route::patch('/tickets/{id}/status', [IssueTicketController::class, 'updateStatus'])->name('api.helpdesk.tickets.update-status');
+    // Get specific ticket by ID
+    Route::get('/tickets/{id}/show', [IssueTicketController::class, 'show'])->name('api.helpdesk.tickets.show');
 
-        // Get statistics
-        Route::get('/statistics', [IssueTicketController::class, 'statistics'])->name('api.helpdesk.statistics');
+    // Update ticket status
+    Route::patch('/tickets/{id}/status', [IssueTicketController::class, 'updateStatus'])->name('api.helpdesk.tickets.update-status');
+
+    // Get statistics
+    Route::get('/statistics', [IssueTicketController::class, 'statistics'])->name('api.helpdesk.statistics');
 
     // Comment endpoints
     // Get all comments for a specific issue
@@ -91,7 +94,6 @@ Route::prefix('helpdesk')->group(function () {
 
     // Delete a comment
     Route::delete('/comments/{commentId}', [IssueTicketController::class, 'deleteComment'])->name('api.helpdesk.comments.destroy');
- 
 });
 
 // Knowledge Base API Routes
@@ -103,6 +105,3 @@ Route::prefix('knowledge-base')->group(function () {
     Route::get('/category/{category}', [\App\Http\Controllers\Api\KnowledgeBaseController::class, 'byCategory'])->name('api.kb.category');
     Route::get('/{slug}', [\App\Http\Controllers\Api\KnowledgeBaseController::class, 'show'])->name('api.kb.show');
 });
-
-
-

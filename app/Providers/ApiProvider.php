@@ -19,6 +19,7 @@ use App\implementation\services\_storesrequisitionService;
 use App\implementation\services\_suspenseService;
 use App\implementation\services\_tenderService;
 use App\implementation\services\_workshopService;
+use App\implementation\services\_zimswithService;
 use App\Interfaces\services\ibanktransactionInterface;
 use App\Interfaces\services\ICalendarService;
 use App\Interfaces\services\icustomerInterface;
@@ -36,6 +37,7 @@ use App\Interfaces\services\istoresrequisitionService;
 use App\Interfaces\services\isuspenseService;
 use App\Interfaces\services\itenderService;
 use App\Interfaces\services\iworkshopService;
+use App\Interfaces\services\izimswitchInterface;
 use Illuminate\Support\ServiceProvider;
 
 class ApiProvider extends ServiceProvider
@@ -70,5 +72,6 @@ class ApiProvider extends ServiceProvider
         $this->app->bind(iepaymentService::class, _epaymentService::class);
         $this->app->bind(ipayeeService::class, _payeeService::class);
         $this->app->bind(iworkshopService::class, _workshopService::class);
+        $this->app->bind(izimswitchInterface::class, _zimswithService::class);
     }
 }

@@ -10,5 +10,6 @@ interface ipayeeInterface
 
     public function create(array $details);
 
+
     public function update(array $details, $uuid);
 }

@@ -239,47 +239,51 @@ class _banktransactionRepository implements ibanktransactionInterface
 
     public function claim(array $data)
     {
-        Log::channel('banktransactionlog')->info('Claiming bank transaction', [
+     /*   Log::channel('banktransactionlog')->info('Claiming bank transaction', [
             'action' => 'claim_transaction',
             'source_reference' => $data['SourceReference'] ?? null,
             'regnumber' => $data['regnumber'] ?? null,
-        ]);
+        ]);*/
 
-        $transaction = $this->model->where('SourceReference', '=', $data['SourceReference'])->first();
+        $transaction = $this->model
+                           ->where('SourceReference', '=', $data['SourceReference'])
+                           ->orWhere('statementreference', '=', $data['SourceReference'])
+
+                           ->first();
         if ($transaction == null) {
-            Log::channel('banktransactionlog')->warning('Transaction not found for claim', [
+           /* Log::channel('banktransactionlog')->warning('Transaction not found for claim', [
                 'action' => 'claim_transaction',
                 'source_reference' => $data['SourceReference'] ?? null,
-            ]);
+            ]);*/
             return ['message' => 'Bank transaction not found', 'status' => 'ERROR'];
         }
         if ($transaction->status == 'CLAIMED') {
-            Log::channel('banktransactionlog')->warning('Transaction already claimed', [
+           /* Log::channel('banktransactionlog')->warning('Transaction already claimed', [
                 'action' => 'claim_transaction',
                 'transaction_id' => $transaction->id,
                 'source_reference' => $data['SourceReference'],
                 'current_status' => $transaction->status,
-            ]);
+            ]);*/
             return ['message' => 'Bank transaction already claimed', 'status' => 'ERROR'];
         }
 
         $bankaccount = $this->bankaccountrepo->getBankAccountByBankIdAndAccountNumber($transaction->bank_id, $transaction->accountnumber);
         if ($bankaccount == null) {
-            Log::channel('banktransactionlog')->error('Bank account not found for claim', [
+           /* Log::channel('banktransactionlog')->error('Bank account not found for claim', [
                 'action' => 'claim_transaction',
                 'transaction_id' => $transaction->id,
                 'bank_id' => $transaction->bank_id,
                 'accountnumber' => $transaction->accountnumber,
-            ]);
+            ]);*/
             return ['message' => 'Bank account not found', 'status' => 'ERROR'];
         }
         $customer = $this->customerrepo->getCustomerByRegnumber($data['regnumber']);
         if ($customer == null) {
-            Log::channel('banktransactionlog')->warning('Customer not found for claim', [
+           /* Log::channel('banktransactionlog')->warning('Customer not found for claim', [
                 'action' => 'claim_transaction',
                 'transaction_id' => $transaction->id,
                 'regnumber' => $data['regnumber'],
-            ]);
+            ]);*/
             return ['message' => 'Regnumber not found', 'status' => 'ERROR'];
         }
         $suspenresponse = $this->suspenserepo->create([
@@ -297,7 +301,7 @@ class _banktransactionRepository implements ibanktransactionInterface
         $transaction->status = 'CLAIMED';
         $transaction->save();
 
-        Log::channel('banktransactionlog')->info('Transaction claimed successfully', [
+       /* Log::channel('banktransactionlog')->info('Transaction claimed successfully', [
             'action' => 'claim_transaction',
             'transaction_id' => $transaction->id,
             'source_reference' => $transaction->sourcereference,
@@ -306,55 +310,55 @@ class _banktransactionRepository implements ibanktransactionInterface
             'amount' => $transaction->amount,
             'currency' => $transaction->currency,
             'suspense_id' => $suspenresponse->id ?? null,
-        ]);
+        ]);*/
 
         return ['message' => 'Transaction successfully claimed and wallet successfully topped up', 'status' => 'SUCCESS'];
     }
 
     public function link(array $data)
     {
-        Log::channel('banktransactionlog')->info('Linking bank transaction', [
+       /* Log::channel('banktransactionlog')->info('Linking bank transaction', [
             'action' => 'link_transaction',
             'source_reference' => $data['sourcereference'] ?? null,
             'regnumber' => $data['regnumber'] ?? null,
             'wallettopup_id' => $data['wallettopup_id'] ?? null,
-        ]);
+        ]);*/
 
         $transaction = $this->model->where('sourcereference', '=', $data['sourcereference'])->first();
         if ($transaction == null) {
-            Log::channel('banktransactionlog')->warning('Transaction not found for link', [
+           /* Log::channel('banktransactionlog')->warning('Transaction not found for link', [
                 'action' => 'link_transaction',
                 'source_reference' => $data['sourcereference'] ?? null,
-            ]);
+            ]);*/
             return ['message' => 'Bank transaction not found', 'status' => 'ERROR'];
         }
         if ($transaction->status == 'CLAIMED') {
-            Log::channel('banktransactionlog')->warning('Transaction already claimed - cannot link', [
+           /* Log::channel('banktransactionlog')->warning('Transaction already claimed - cannot link', [
                 'action' => 'link_transaction',
                 'transaction_id' => $transaction->id,
                 'source_reference' => $data['sourcereference'],
                 'current_status' => $transaction->status,
-            ]);
+            ]);*/
             return ['message' => 'Bank transaction already claimed', 'status' => 'ERROR'];
         }
 
         $bankaccount = $this->bankaccountrepo->getBankAccountByBankIdAndAccountNumber($transaction->bank_id, $transaction->accountnumber);
         if ($bankaccount == null) {
-            Log::channel('banktransactionlog')->error('Bank account not found for link', [
+           /* Log::channel('banktransactionlog')->error('Bank account not found for link', [
                 'action' => 'link_transaction',
                 'transaction_id' => $transaction->id,
                 'bank_id' => $transaction->bank_id,
                 'accountnumber' => $transaction->accountnumber,
-            ]);
+            ]);*/
             return ['message' => 'Bank account not found', 'status' => 'ERROR'];
         }
         $customer = $this->customerrepo->getCustomerByRegnumber($data['regnumber']);
         if ($customer == null) {
-            Log::channel('banktransactionlog')->warning('Customer not found for link', [
+           /* Log::channel('banktransactionlog')->warning('Customer not found for link', [
                 'action' => 'link_transaction',
                 'transaction_id' => $transaction->id,
                 'regnumber' => $data['regnumber'],
-            ]);
+            ]);*/
             return ['message' => 'Regnumber not found', 'status' => 'ERROR'];
         }
         $transaction->customer_id = $customer->id;
@@ -362,47 +366,47 @@ class _banktransactionRepository implements ibanktransactionInterface
         $transaction->save();
         $response = $this->wallettopuprepo->linkwallet(['id' => $data['wallettopup_id'], 'banktransaction_id' => $transaction->id]);
         if ($response['status'] == 'ERROR') {
-            Log::channel('banktransactionlog')->error('Failed to link wallet', [
+           /* Log::channel('banktransactionlog')->error('Failed to link wallet', [
                 'action' => 'link_transaction',
                 'transaction_id' => $transaction->id,
                 'wallettopup_id' => $data['wallettopup_id'],
                 'error_message' => $response['message'] ?? null,
-            ]);
+            ]);*/
             return ['message' => $response['message'], 'status' => 'ERROR'];
         } else {
-            Log::channel('banktransactionlog')->info('Transaction linked successfully', [
+           /* Log::channel('banktransactionlog')->info('Transaction linked successfully', [
                 'action' => 'link_transaction',
                 'transaction_id' => $transaction->id,
                 'source_reference' => $transaction->sourcereference,
                 'customer_id' => $customer->id,
                 'regnumber' => $data['regnumber'],
                 'wallettopup_id' => $data['wallettopup_id'],
-            ]);
+            ]);*/
             return ['message' => $response['message'], 'status' => 'SUCCESS'];
         }
     }
 
     public function block($id, $status)
     {
-        Log::channel('banktransactionlog')->info('Blocking/updating transaction status', [
+       /* Log::channel('banktransactionlog')->info('Blocking/updating transaction status', [
             'action' => 'block_transaction',
             'transaction_id' => $id,
             'new_status' => $status,
-        ]);
+        ]);*/
 
         $transaction = $this->model->find($id);
         if ($transaction == null) {
-            Log::channel('banktransactionlog')->warning('Transaction not found for block', [
+           /* Log::channel('banktransactionlog')->warning('Transaction not found for block', [
                 'action' => 'block_transaction',
                 'transaction_id' => $id,
-            ]);
+            ]);*/
             return ['message' => 'Bank transaction not found', 'status' => 'ERROR'];
         }
         $previous_status = $transaction->status;
         $transaction->status = $status;
         $transaction->save();
 
-        Log::channel('banktransactionlog')->info('Transaction status updated', [
+       Log::channel('banktransactionlog')->info('Transaction status updated', [
             'action' => 'block_transaction',
             'transaction_id' => $transaction->id,
             'previous_status' => $previous_status,
@@ -442,10 +446,10 @@ class _banktransactionRepository implements ibanktransactionInterface
 
     public function extractdata($id)
     {
-        Log::channel('banktransactionlog')->info('Extracting bank reconciliation data', [
+       /* Log::channel('banktransactionlog')->info('Extracting bank reconciliation data', [
             'action' => 'extract_data',
             'bankreconciliation_id' => $id,
-        ]);
+        ]);*/
 
         $bankreconciliation = $this->bankreconciliationmodel->find($id);
         if ($bankreconciliation == null) {
@@ -496,21 +500,21 @@ class _banktransactionRepository implements ibanktransactionInterface
             $bankreconciliation->status = 'EXTRACTED';
             $bankreconciliation->save();
 
-            Log::channel('banktransactionlog')->info('Data extracted successfully', [
+           /* Log::channel('banktransactionlog')->info('Data extracted successfully', [
                 'action' => 'extract_data',
                 'bankreconciliation_id' => $id,
                 'filename' => $bankreconciliation->filename,
                 'records_processed' => $records_processed,
-            ]);
+            ]);*/
 
             return ['message' => 'Data extracted', 'status' => 'SUCCESS'];
         } catch (\Exception $e) {
-            Log::channel('banktransactionlog')->error('Error extracting data', [
+           /* Log::channel('banktransactionlog')->error('Error extracting data', [
                 'action' => 'extract_data',
                 'bankreconciliation_id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-            ]);
+            ]);*/
             return ['message' => $e->getMessage(), 'status' => 'ERROR'];
         }
     }
@@ -593,13 +597,13 @@ class _banktransactionRepository implements ibanktransactionInterface
         $data->status = 'SYNCED';
         $data->save();
 
-        Log::channel('banktransactionlog')->info('Data synced successfully', [
+       /* Log::channel('banktransactionlog')->info('Data synced successfully', [
             'action' => 'sync_data',
             'bankreconciliation_id' => $id,
             'total_records' => $data->bankreconciliationdata->count(),
             'synced_count' => $synced_count,
             'not_found_count' => $not_found_count,
-        ]);
+        ]);*/
 
         return ['message' => 'Data synced', 'status' => 'SUCCESS'];
     }

@@ -12,5 +12,7 @@ interface ipayeeService
 
     public function update(array $details, $uuid);
 
+    public function checkattempt($uuid);
+
     public function retrievepayments($email);
 }

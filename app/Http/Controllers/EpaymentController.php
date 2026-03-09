@@ -32,7 +32,7 @@ class EpaymentController extends Controller
         Log::info("posttransaction:".json_encode($request->all()));
         $validator = Validator::make($request->all(), [
             'initiationId' => 'required',
-            'TransactionDate' => 'required',
+            'TransactionDate' => 'required', 
             'Reference' => 'required',
             'Amount' => 'required'
         ]);

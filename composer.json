@@ -10,7 +10,6 @@
         "dedoc/scramble": "^0.13.2",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
-        "laravel/telescope": "^5.15",
         "laravel/tinker": "^2.10.1",
         "paynow/php-sdk": "^1.0"
     },

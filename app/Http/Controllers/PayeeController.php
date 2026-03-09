@@ -32,6 +32,10 @@ class PayeeController extends Controller
     {
         return $this->service->getbyuuid($uuid);
     }
+    public function check($uuid)
+    {
+        return $this->service->checkattempt($uuid);
+    }
 
     public function create(PayeeRequest $request)
     {

@@ -29,7 +29,7 @@ class _paynowService implements ipaynowInterface
         $token = $paynowintegrations->token;
         $key = $paynowintegrations->key;
         $email = $mode == 'test' ? 'benson.misi@outlook.com' : $data['email'];
-        $paynow = new Paynow($key, $token, config('paynowconfig.return_url').$data['reference'], config('paynowconfig.return_url').$data['reference']);
+        $paynow = new Paynow($key, $token, config('paynowconfig.return_url') . $data['uuid'], config('paynowconfig.return_url') . $data['uuid']);
         $payment = $paynow->createPayment($data['reference'], $email);
         $payment->add($data['description'], $data['amount']);
         $response = $paynow->send($payment);
@@ -37,6 +37,26 @@ class _paynowService implements ipaynowInterface
             return ['status' => 'success', 'message' => 'Payment initiated successfully', 'pollurl' => $response->pollUrl(), 'redirecturl' => $response->redirectUrl()];
         } else {
             return ['status' => 'error', 'message' => 'Payment initiation failed'];
+        }
+    }
+    public function initiatemobilepayment($data)
+    {
+        $paynowintegrations = $this->paynowintegrationsrepo->getpaynowparameters(['type' => $data['type'], 'currency_id' => $data['currency_id']]);
+        if ($paynowintegrations == null) {
+            return ['status' => 'error', 'message' => 'Paynow integration not found'];
+        }
+        $mode = config('paynowconfig.mode');
+        $token = $paynowintegrations->token;
+        $key = $paynowintegrations->key;
+        $email = $mode == 'test' ? 'benson.misi@outlook.com' : $data['email'];
+        $paynow = new Paynow($key, $token, config('paynowconfig.return_url') . $data['reference'], config('paynowconfig.return_url') . $data['reference']);
+        $payment = $paynow->createPayment($data['reference'], $email);
+        $payment->add($data['description'], $data['amount']);
+        $response = $paynow->sendMobile($payment, $data['phone'], $data['method']);
+        if ($response->success()) {
+            return ['status' => 'success', 'message' => $response->instructions(), 'pollurl' => $response->pollUrl(), 'redirecturl' => $response->redirectUrl()];
+        } else {
+            return ['status' => 'error', 'message' => $response->errors()];
         }
     }
 
