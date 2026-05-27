@@ -91,7 +91,7 @@ class _onlinepaymentRepository implements ionlinepaymentInterface
             if ($invoice->customer == null) {
                 return ['status' => 'ERROR', 'message' => 'Customer account not found'];
             }
-            if (strtoupper($invoice->customer->regnumber) != $data['regnumber']) {
+            if (strtoupper($invoice->customer->regnumber) != strtoupper($data['regnumber'])) {
                 return ['status' => 'ERROR', 'message' => 'Customer account not found'];
             }
             // Check if invoice has currency
