@@ -51,16 +51,16 @@ class _onlinepaymentRepository implements ionlinepaymentInterface
     {
         $onlinepayment = $this->onlinepayment->with('currency', 'invoice.currency', 'invoice.customer', 'invoice.inventoryitem')->where('uuid', $uuid)->first();
         return [
-            "id" => $onlinepayment->id,
-            'invoicenumber' => $onlinepayment->uuid,
+            "id" => $onlinepayment?->id,
+            'invoicenumber' => $onlinepayment?->uuid,
             "currency" => $onlinepayment?->currency?->name,
-            "customer" => $onlinepayment?->invoice->customer->name,
-            "inventoryitem" => $onlinepayment?->invoice?->inventoryitem->name,
-            "description" => $onlinepayment->invoice->description,
-            "amount" => $onlinepayment->amount,
-            "status" => $onlinepayment->status,
-            "invoicedate" => $onlinepayment->created_at,
-            "redirecturl" => $onlinepayment->return_url,
+            "customer" => $onlinepayment?->invoice?->customer?->name,
+            "inventoryitem" => $onlinepayment?->invoice?->inventoryitem?->name,
+            "description" => $onlinepayment?->invoice?->description,
+            "amount" => $onlinepayment?->amount,
+            "status" => $onlinepayment?->status,
+            "invoicedate" => $onlinepayment?->created_at,
+            "redirecturl" => $onlinepayment?->return_url,
             "invoicestatus" => $onlinepayment?->invoice?->status
         ];
     }
