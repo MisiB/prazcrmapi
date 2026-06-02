@@ -40,7 +40,7 @@ Route::get('Wallet/{regnumber}', [WalletController::class, 'getwallet']);
 Route::post('PayNow/Initiate', [OnlinepaymentController::class, 'initiatePayment']);
 Route::get('PayNow/{uuid}', [OnlinepaymentController::class, 'checkPayment']);
 Route::get('onlinepayments/{uuid}', [OnlinepaymentController::class, 'getepayment']);
-Route::post('payees/getbyemail', [PayeeController::class, 'getbyemail']);
+Route::post('payees/getbyemail', [PayeeController::class, 'getbyemail'])->middleware('throttle:10,1');
 Route::get('payees/{uuid}', [PayeeController::class, 'getbyuuid']);
 Route::post('payees', [PayeeController::class, 'create']);
 Route::put('payees/{uuid}', [PayeeController::class, 'update']);

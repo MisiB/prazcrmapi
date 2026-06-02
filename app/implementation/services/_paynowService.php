@@ -28,7 +28,7 @@ class _paynowService implements ipaynowInterface
         $mode = config('paynowconfig.mode');
         $token = $paynowintegrations->token;
         $key = $paynowintegrations->key;
-        $email = $mode == 'test' ? 'benson.misi@outlook.com' : $data['email'];
+        $email = $mode != 'PROD' ? 'benson.misi@outlook.com' : $data['email'];
         $paynow = new Paynow($key, $token, config('paynowconfig.return_url') . $data['reference'], config('paynowconfig.return_url') . $data['reference']);
         $payment = $paynow->createPayment($data['reference'], $email);
         $payment->add($data['description'], $data['amount']);

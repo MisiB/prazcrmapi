@@ -24,23 +24,40 @@ class _payeeService implements ipayeeService
 
     public function getbyuuid($uuid)
     {
-        return $this->payeeRepository->getbyuuid($uuid);
+        $payeeload = $this->payeeRepository->getbyuuid($uuid);
+        if ($payeeload->status == "success") {
+        } else {
+            return $payeeload;
+        }
     }
     public function checkattempt($uuid)
     {
         $attempt =  $this->payeeRepository->getbyuuid($uuid);
         if ($attempt['status'] == "success") {
             $data = $attempt["data"];
+            if ($data->onlinepayment->status == "PAID") {
+                return [
+                    "status" => "success",
+                    "message" => "Transaction already settled",
+                    "return_url" => $data?->onlinepayment->redirecturl,
+                    "uuid" => $data?->onlinepayment->uuid,
+                    "data" => $data
+                ];
+            }
             $returnurl = config('paynowconfig.return_url') . $data->uuid;
             $checkstatus = $this->paynow->checkpaymentstatus(['type' => $data?->onlinepayment?->invoice?->inventoryitem?->type, 'currency_id' => $data?->onlinepayment->currency_id, 'pollurl' => $data->poll_url, 'returnurl' => $returnurl]);
 
 
-            $response = $this->payeeRepository->update(['status' => $checkstatus['status']], $uuid);
-            return [
-                "status" => $response['status'],
-                "message" => $response['message'],
-                'redirecturl' => $response["data"]?->onlinepayment->return_url
-            ];
+            $status = "";
+            if (strtoupper($checkstatus['status']) == "PAID" || strtoupper($checkstatus['status']) == "AWAITING DELIVERY") {
+                $status = "PAID";
+            } else {
+                $status = strtoupper($checkstatus['status']);
+            }
+
+            return $this->payeeRepository->update(['status' => $status], $uuid);
+
+            // return $this->update(['status' => strtoupper($checkstatus['status'])], $uuid);
         } else {
             return [
                 "status" => "error",

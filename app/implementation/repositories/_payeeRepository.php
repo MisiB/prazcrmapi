@@ -53,10 +53,13 @@ class _payeeRepository implements ipayeeInterface
     {
         $record = $this->payeeattempt->with('payeedetail', 'onlinepayment.currency', 'onlinepayment.invoice.customer', 'onlinepayment.invoice.inventoryitem')->where('uuid', $uuid)->first();
         if ($record) {
+            //$bankaccount = $this->bankaccountrepository->getbankaccountbytype($record?->onlinepayment?->currency_id, $record?->onlinepayment?->invoice?->inventoryitem?->type);
+
             return [
                 'status' => 'success',
                 'message' => 'Payee attempt details retrieved successfully',
                 'data' => $record,
+                // 'bankaccount' => $bankaccount
             ];
         } else {
             return [
@@ -180,9 +183,9 @@ class _payeeRepository implements ipayeeInterface
     public function update(array $details, $uuid)
     {
         try {
-            Log::info(json_encode($details));
+
             $record = $this->payeeattempt->with('onlinepayment.invoice.inventoryitem')->where('uuid', $uuid)->first();
-            Log::info(json_encode($record));
+
             if ($record) {
                 if (strtoupper($details['status']) == 'PAID' || strtoupper($details['status']) == 'APPROVED') {
                     $bankid = 1;
@@ -212,7 +215,13 @@ class _payeeRepository implements ipayeeInterface
                         'posted' => 0,
                     ]);
                     if ($suspenresponse['status'] == 'error') {
-                        return $suspenresponse;
+
+                        return [
+                            'status' => $suspenresponse['status'],
+                            'message' => $suspenresponse['message'],
+                            'return_url' => $record?->onlinepayment?->return_url,
+                            'uuid' => $record?->onlinepayment->uuid,
+                        ];
                     } else {
                         $record->status = 'APPROVED';
                         $record->save();
@@ -240,6 +249,8 @@ class _payeeRepository implements ipayeeInterface
 
                     return [
                         'status' => 'error',
+                        'return_url' => $record?->onlinepayment?->return_url,
+                        'uuid' => $record?->onlinepayment?->uuid,
                         'message' => 'Payment attempt failed with status: ' . $details['status'],
                     ];
                 }
