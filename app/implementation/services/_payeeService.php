@@ -24,11 +24,7 @@ class _payeeService implements ipayeeService
 
     public function getbyuuid($uuid)
     {
-        $payeeload = $this->payeeRepository->getbyuuid($uuid);
-        if ($payeeload->status == "success") {
-        } else {
-            return $payeeload;
-        }
+      return $this->payeeRepository->getbyuuid($uuid);       
     }
     public function checkattempt($uuid)
     {
