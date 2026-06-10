@@ -51,7 +51,8 @@ class _payeeService implements ipayeeService
                 $status = strtoupper($checkstatus['status']);
             }
 
-            return $this->payeeRepository->update(['status' => $status], $uuid);
+             $this->payeeRepository->update(['status' => $status], $uuid);
+            return $this->payeeRepository->getbyuuid($uuid);
 
             // return $this->update(['status' => strtoupper($checkstatus['status'])], $uuid);
         } else {
